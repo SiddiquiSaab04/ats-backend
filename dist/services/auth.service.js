@@ -5,10 +5,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("../prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const signup = async (req) => {
     const { name, email, password, role } = req.body;
     const saltRounds = 12;
     const hashedPassword = await bcrypt_1.default.hash(password, saltRounds);
+    const token = jsonwebtoken_1.default.sign({ email, role }, process.env.JWT_SECRETKEY, { expiresIn: "1h" });
     const existingUser = await client_1.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
         throw new Error("User already exists");
@@ -23,6 +25,7 @@ const signup = async (req) => {
     });
     return {
         id: user.id,
+        token,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -30,6 +33,28 @@ const signup = async (req) => {
         updatedAt: user.updatedAt
     };
 };
+const login = async (req) => {
+    const { email, password } = req.body;
+    const existingUser = await client_1.prisma.user.findUnique({ where: { email } });
+    if (!existingUser) {
+        throw new Error("User not found");
+    }
+    const validPassword = await bcrypt_1.default.compare(password, existingUser.password);
+    if (!validPassword) {
+        throw new Error("Invalid password");
+    }
+    const token = jsonwebtoken_1.default.sign({ email, role: existingUser.role }, process.env.JWT_SECRETKEY, { expiresIn: "1h" });
+    return {
+        id: existingUser.id,
+        token,
+        name: existingUser.name,
+        email: existingUser.email,
+        role: existingUser.role,
+        createdAt: existingUser.createdAt,
+        updatedAt: existingUser.updatedAt
+    };
+};
 exports.default = {
     signup,
+    login
 };

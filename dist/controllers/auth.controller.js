@@ -18,9 +18,27 @@ const signup = async (req, res) => {
     }
     catch (error) {
         console.log("Error signing up:", error);
-        return res.status(500).json({ success: false, message: "Error signing up" });
+        return res.status(500).json({ success: false, message: "Error signing up", error });
+    }
+};
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "All fields are required" });
+        }
+        const loginUser = await auth_service_1.default.login(req);
+        if (!loginUser) {
+            return res.status(400).json({ success: false, message: "Error logging in" });
+        }
+        return res.status(200).json({ success: true, message: "User logged in successfully", user: loginUser });
+    }
+    catch (error) {
+        console.log("Error logging in:", error);
+        return res.status(500).json({ success: false, message: "Error logging in" });
     }
 };
 exports.default = {
     signup,
+    login
 };

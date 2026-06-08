@@ -1,11 +1,13 @@
 import { prisma } from "../prisma/client";
 import { Request } from "express";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const signup = async(req:Request) => {
     const {name , email , password , role} = req.body;
     const saltRounds = 12 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const token = jwt.sign({email , role} , process.env.JWT_SECRETKEY! , {expiresIn: "1h"});
     const existingUser = await prisma.user.findUnique({where: {email}});
     if(existingUser){
         throw new Error("User already exists");
@@ -21,6 +23,7 @@ const signup = async(req:Request) => {
     
     return {
         id:user.id,
+        token,
         name:user.name,
         email:user.email,
         role:user.role,
@@ -29,6 +32,29 @@ const signup = async(req:Request) => {
     };
 }
 
+const login = async(req:Request) => {
+    const {email , password} = req.body;
+    const existingUser = await prisma.user.findUnique({where: {email}});
+    if(!existingUser){
+        throw new Error("User not found");
+    }
+    const validPassword = await bcrypt.compare(password, existingUser.password);
+    if(!validPassword){
+        throw new Error("Invalid password");
+    }
+    const token = jwt.sign({email , role: existingUser.role} , process.env.JWT_SECRETKEY! , {expiresIn: "1h"});
+    return {
+        id:existingUser.id,
+        token,
+        name:existingUser.name,
+        email:existingUser.email,
+        role:existingUser.role,
+        createdAt:existingUser.createdAt,
+        updatedAt:existingUser.updatedAt
+    };
+}
+
 export default {
     signup,
+    login
 }
