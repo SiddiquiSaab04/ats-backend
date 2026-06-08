@@ -42,7 +42,7 @@ model Job {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   createdBy Int
-  User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  user User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   applications Application[]
 }
 
