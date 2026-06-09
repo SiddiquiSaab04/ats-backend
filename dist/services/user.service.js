@@ -14,6 +14,25 @@ const getAllUsers = async () => {
         };
     });
 };
+const getCurrentUser = async (email) => {
+    const user = await client_1.prisma.user.findUnique({
+        where: {
+            email: email,
+        }
+    });
+    if (!user) {
+        throw new Error("User not found");
+    }
+    return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+    };
+};
 exports.default = {
     getAllUsers,
+    getCurrentUser,
 };

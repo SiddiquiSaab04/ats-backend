@@ -11,6 +11,18 @@ const getAllUsers = async (req: Request, res: Response) => {
     }
 }
 
+const getCurrentUser = async (req: Request, res: Response) => {
+    try {
+        const email = (req as any).user?.email as string;
+        const user = await userService.getCurrentUser(email);
+        return res.status(200).json({ success: true, message: "User fetched successfully", user });
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        return res.status(500).json({ success: false, message: "Error fetching user" });
+    }
+}
+
 export default {
     getAllUsers,
+    getCurrentUser,
 }

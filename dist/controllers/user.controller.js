@@ -14,6 +14,18 @@ const getAllUsers = async (req, res) => {
         return res.status(500).json({ success: false, message: "Error fetching users" });
     }
 };
+const getCurrentUser = async (req, res) => {
+    try {
+        const email = req.user?.email;
+        const user = await user_service_1.default.getCurrentUser(email);
+        return res.status(200).json({ success: true, message: "User fetched successfully", user });
+    }
+    catch (error) {
+        console.error("Error fetching user:", error);
+        return res.status(500).json({ success: false, message: "Error fetching user" });
+    }
+};
 exports.default = {
     getAllUsers,
+    getCurrentUser,
 };
