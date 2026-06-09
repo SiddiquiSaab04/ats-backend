@@ -21,6 +21,15 @@ const auth = async (req, res, next) => {
         });
     }
 };
+const authorizeRole = (...roles) => {
+    return (req, res, next) => {
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({ success: false, message: "Unauthorized" });
+        }
+        next();
+    };
+};
 exports.default = {
-    auth
+    auth,
+    authorizeRole,
 };
