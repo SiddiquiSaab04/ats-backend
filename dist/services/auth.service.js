@@ -10,7 +10,6 @@ const signup = async (req) => {
     const { name, email, password, role } = req.body;
     const saltRounds = 12;
     const hashedPassword = await bcrypt_1.default.hash(password, saltRounds);
-    const token = jsonwebtoken_1.default.sign({ email, role }, process.env.JWT_SECRETKEY, { expiresIn: "1h" });
     const existingUser = await client_1.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
         throw new Error("User already exists");
@@ -23,6 +22,7 @@ const signup = async (req) => {
             role,
         }
     });
+    const token = jsonwebtoken_1.default.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRETKEY, { expiresIn: "1h" });
     return {
         id: user.id,
         token,
@@ -43,7 +43,7 @@ const login = async (req) => {
     if (!validPassword) {
         throw new Error("Invalid password");
     }
-    const token = jsonwebtoken_1.default.sign({ email, role: existingUser.role }, process.env.JWT_SECRETKEY, { expiresIn: "1h" });
+    const token = jsonwebtoken_1.default.sign({ id: existingUser.id, email, role: existingUser.role }, process.env.JWT_SECRETKEY, { expiresIn: "1h" });
     return {
         id: existingUser.id,
         token,

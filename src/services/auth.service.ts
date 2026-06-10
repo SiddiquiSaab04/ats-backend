@@ -7,7 +7,6 @@ const signup = async(req:Request) => {
     const {name , email , password , role} = req.body;
     const saltRounds = 12 
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-    const token = jwt.sign({email , role} , process.env.JWT_SECRETKEY! , {expiresIn: "1h"});
     const existingUser = await prisma.user.findUnique({where: {email}});
     if(existingUser){
         throw new Error("User already exists");
@@ -21,6 +20,8 @@ const signup = async(req:Request) => {
         }
     })
     
+    const token = jwt.sign({id: user.id, email: user.email, role: user.role}, process.env.JWT_SECRETKEY!, {expiresIn: "1h"});
+
     return {
         id:user.id,
         token,
@@ -42,7 +43,7 @@ const login = async(req:Request) => {
     if(!validPassword){
         throw new Error("Invalid password");
     }
-    const token = jwt.sign({email , role: existingUser.role} , process.env.JWT_SECRETKEY! , {expiresIn: "1h"});
+    const token = jwt.sign({id:existingUser.id ,email , role: existingUser.role} , process.env.JWT_SECRETKEY! , {expiresIn: "1h"});
     return {
         id:existingUser.id,
         token,
