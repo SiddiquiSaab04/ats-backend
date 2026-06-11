@@ -1,5 +1,6 @@
 import { prisma } from "../prisma/client";
 import { paginate } from "../utils/pagination";
+import { redisClient } from "../redis/client";
 
 const createJob = async (jobData:any , userId:number) => {
     const job = await prisma.job.create({
@@ -23,7 +24,6 @@ const createJob = async (jobData:any , userId:number) => {
             }))
         })
     }
-    // Fetch the fully populated job to include skill names and company
     const createdJob = await prisma.job.findUnique({
         where: { id: job.id },
         include: {
@@ -47,8 +47,16 @@ const createJob = async (jobData:any , userId:number) => {
 }
 
 const getAllJobs = async (page: number = 1, limit: number = 10) => {
+
+    const cacheKey = `jobs:${page}:${limit}`;
+
+    const cachedJobs = await redisClient.get(cacheKey);
+    if(cachedJobs){
+        return JSON.parse(cachedJobs);
+    }
+    
     const result = await paginate(prisma.job, { page, limit }, {
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'asc' },
         include: {
             jobSkills: {
                 include: { skill: true }
@@ -57,7 +65,7 @@ const getAllJobs = async (page: number = 1, limit: number = 10) => {
         }
     });
 
-    return {
+    const jobs = {
         ...result,
         data: result.data.map((job: any) => {
             const { jobSkills, ...rest } = job;
@@ -67,6 +75,10 @@ const getAllJobs = async (page: number = 1, limit: number = 10) => {
             };
         }),
     };
+
+    await redisClient.set(cacheKey, JSON.stringify(jobs), { EX: 60 * 5 });
+
+    return jobs;
 }
 
 
