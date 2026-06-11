@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("../prisma/client");
+const pagination_1 = require("../utils/pagination");
 const createJob = async (jobData, userId) => {
     const job = await client_1.prisma.job.create({
         data: {
@@ -44,24 +45,26 @@ const createJob = async (jobData, userId) => {
     }
     return createdJob;
 };
-const getAllJobs = async () => {
-    const jobs = await client_1.prisma.job.findMany({
+const getAllJobs = async (page = 1, limit = 10) => {
+    const result = await (0, pagination_1.paginate)(client_1.prisma.job, { page, limit }, {
+        orderBy: { createdAt: 'desc' },
         include: {
             jobSkills: {
-                include: {
-                    skill: true
-                }
+                include: { skill: true }
             },
             company: true,
         }
     });
-    return jobs.map((job) => {
-        const { jobSkills, ...rest } = job;
-        return {
-            ...rest,
-            skills: jobSkills.map((js) => js.skill)
-        };
-    });
+    return {
+        ...result,
+        data: result.data.map((job) => {
+            const { jobSkills, ...rest } = job;
+            return {
+                ...rest,
+                skills: jobSkills.map((js) => js.skill),
+            };
+        }),
+    };
 };
 exports.default = {
     createJob,

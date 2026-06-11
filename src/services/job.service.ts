@@ -1,4 +1,5 @@
 import { prisma } from "../prisma/client";
+import { paginate } from "../utils/pagination";
 
 const createJob = async (jobData:any , userId:number) => {
     const job = await prisma.job.create({
@@ -45,25 +46,27 @@ const createJob = async (jobData:any , userId:number) => {
     return createdJob;
 }
 
-const getAllJobs = async () => {
-    const jobs = await prisma.job.findMany({
-        include:{
-            jobSkills:{
-                include:{
-                    skill:true
-                }
+const getAllJobs = async (page: number = 1, limit: number = 10) => {
+    const result = await paginate(prisma.job, { page, limit }, {
+        orderBy: { createdAt: 'desc' },
+        include: {
+            jobSkills: {
+                include: { skill: true }
             },
             company: true,
         }
     });
 
-    return jobs.map((job: any) => {
-        const { jobSkills, ...rest } = job;
-        return {
-            ...rest,
-            skills: jobSkills.map((js: any) => js.skill)
-        };
-    });
+    return {
+        ...result,
+        data: result.data.map((job: any) => {
+            const { jobSkills, ...rest } = job;
+            return {
+                ...rest,
+                skills: jobSkills.map((js: any) => js.skill),
+            };
+        }),
+    };
 }
 
 

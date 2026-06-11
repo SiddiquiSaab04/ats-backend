@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const job_service_1 = __importDefault(require("../services/job.service"));
+const pagination_1 = require("../utils/pagination");
 const createJob = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -17,8 +18,9 @@ const createJob = async (req, res) => {
 };
 const getAllJobs = async (req, res) => {
     try {
-        const jobs = await job_service_1.default.getAllJobs();
-        return res.status(200).json({ success: true, message: "Jobs fetched successfully", jobs });
+        const { page, limit } = (0, pagination_1.parsePaginationQuery)(req);
+        const result = await job_service_1.default.getAllJobs(page, limit);
+        return res.status(200).json({ success: true, message: "Jobs fetched successfully", ...result });
     }
     catch (error) {
         console.log("Error fetching jobs:", error);

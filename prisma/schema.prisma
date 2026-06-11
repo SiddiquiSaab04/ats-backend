@@ -69,6 +69,8 @@ model JobSkill{
   job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
   skill Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
     @@id([jobId, skillId])
+    @@index([jobId])
+@@index([skillId])
 
 }
 
@@ -89,6 +91,7 @@ model Job {
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   applications Application[]
+    @@index([companyId])
 }
 
 model Application{
