@@ -39,7 +39,6 @@ const paginate = async <T>(
 ): Promise<PaginatedResult<T>> => {
     const skip = (page - 1) * limit;
 
-    // Extract 'where' from options so count() uses the same filter
     const { where, ...rest } = options;
 
     const [data, totalRecords] = await Promise.all([
@@ -67,10 +66,6 @@ const paginate = async <T>(
     };
 };
 
-/**
- * Parse and validate pagination query params from an Express request.
- * Defaults: page = 1, limit = 10. Limit is capped at maxLimit (default 100).
- */
 const parsePaginationQuery = (req: Request, maxLimit: number = 100): PaginationParams => {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(maxLimit, Math.max(1, parseInt(req.query.limit as string) || 10));

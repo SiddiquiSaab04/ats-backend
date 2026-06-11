@@ -36,6 +36,12 @@ const createJob = async (jobData:any , userId:number) => {
         }
     });
 
+    // Invalidate cached job listing pages after job is created
+    const keys = await redisClient.keys("jobs:*");
+    if(keys.length > 0){
+        await redisClient.del(keys);
+    }
+
     if (createdJob) {
         const { jobSkills, ...rest } = createdJob;
         return {
@@ -82,7 +88,7 @@ const getAllJobs = async (page: number = 1, limit: number = 10) => {
         }),
     };
 
-    await redisClient.set(cacheKey, JSON.stringify(jobs), { EX: 60});
+    await redisClient.set(cacheKey, JSON.stringify(jobs), { EX: 60*5 });
 
     return jobs;
 }
