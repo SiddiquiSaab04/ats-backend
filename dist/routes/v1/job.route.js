@@ -8,4 +8,5 @@ const auth_middleware_1 = __importDefault(require("../../middlewares/auth.middle
 const job_controller_1 = __importDefault(require("../../controllers/job.controller"));
 const router = (0, express_1.Router)();
 router.post("/", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER"), job_controller_1.default.createJob);
+router.get("/", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "CANDIDATE", "ADMIN"), job_controller_1.default.getAllJobs);
 exports.default = router;

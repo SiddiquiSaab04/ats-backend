@@ -23,8 +23,47 @@ const createJob = async (jobData, userId) => {
             }))
         });
     }
-    return job;
+    // Fetch the fully populated job to include skill names and company
+    const createdJob = await client_1.prisma.job.findUnique({
+        where: { id: job.id },
+        include: {
+            jobSkills: {
+                include: {
+                    skill: true
+                }
+            },
+            company: true,
+        }
+    });
+    if (createdJob) {
+        const { jobSkills, ...rest } = createdJob;
+        return {
+            ...rest,
+            skills: jobSkills.map((js) => js.skill)
+        };
+    }
+    return createdJob;
+};
+const getAllJobs = async () => {
+    const jobs = await client_1.prisma.job.findMany({
+        include: {
+            jobSkills: {
+                include: {
+                    skill: true
+                }
+            },
+            company: true,
+        }
+    });
+    return jobs.map((job) => {
+        const { jobSkills, ...rest } = job;
+        return {
+            ...rest,
+            skills: jobSkills.map((js) => js.skill)
+        };
+    });
 };
 exports.default = {
     createJob,
+    getAllJobs,
 };

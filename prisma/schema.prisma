@@ -28,6 +28,9 @@ enum JobType{
   PART_TIME
   CONTRACT
   INTERNSHIP
+  REMOTE
+  HYBRID
+  ON_SITE
 }
 
 model User {
