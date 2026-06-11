@@ -71,12 +71,18 @@ const getAllJobs = async (page: number = 1, limit: number = 10) => {
             const { jobSkills, ...rest } = job;
             return {
                 ...rest,
-                skills: jobSkills.map((js: any) => js.skill),
+                skills: jobSkills.map((js: any) => js.skill.name),
+                company:{
+                    id: job.companyId,
+                    name: job.company.name,
+                    description: job.company.description,
+                    location: job.company.location,
+                }
             };
         }),
     };
 
-    await redisClient.set(cacheKey, JSON.stringify(jobs), { EX: 60 * 5 });
+    await redisClient.set(cacheKey, JSON.stringify(jobs), { EX: 60});
 
     return jobs;
 }
