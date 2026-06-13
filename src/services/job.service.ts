@@ -153,4 +153,79 @@ const getJobById = async (id : number) => {
 }
 
 
-export default {createJob, getAllJobs, getJobById}
+const updateJob = async (id : number , jobData : any) => {
+
+    const job = await prisma.job.update({
+        where: {
+            id
+        },
+        include: {
+            jobSkills: {
+                include: {
+                    skill: true
+                }
+            }
+        },
+        data: {
+            title: jobData.title,
+            description: jobData.description,
+            requirements: jobData.requirements,
+            benefits: jobData.benefits,
+            location: jobData.location,
+            salary: jobData.salary,
+            companyId: Number(jobData.companyId),
+            jobType: jobData.jobType
+        }
+    });
+
+     if (jobData.skills && jobData.skills.length > 0) {
+        // Delete existing skills for this job
+        await prisma.jobSkill.deleteMany({
+            where: { jobId: job.id }
+        });
+
+        // Create the new skills
+        await prisma.jobSkill.createMany({
+            data: jobData.skills.map(
+                (skillId: number) => ({jobId: Number(id),skillId: Number(skillId) })
+            )
+        });
+    }
+
+    if(job){
+        const keys = await redisClient.keys("jobs:*");
+        if (keys.length > 0) {
+            await redisClient.del(keys);
+        }
+        const updatedJob = await prisma.job.findUnique({
+            where: {
+                id: job.id
+            },
+            include: {
+                jobSkills: {
+                    include: {
+                        skill: true
+                    }
+                },
+                company: true
+            }
+        });
+
+        if(updatedJob){
+            const {jobSkills, ...rest} = updatedJob;
+            return {
+                ...rest,
+                skills: jobSkills.map((js: any) => js.skill.name),
+                company: {
+                    id: updatedJob.companyId,
+                    name: updatedJob.company.name,
+                    description: updatedJob.company.description,
+                    location: updatedJob.company.location
+                }
+            }
+        }
+    }
+    return job;
+}
+
+export default {createJob, getAllJobs, getJobById, updateJob}

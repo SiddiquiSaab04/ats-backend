@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const job_service_1 = __importDefault(require("../services/job.service"));
 const pagination_1 = require("../utils/pagination");
+const client_1 = require("../prisma/client");
 const createJob = async (req, res) => {
     try {
         const userId = req.user?.id;
@@ -38,8 +39,26 @@ const getJobById = async (req, res) => {
         return res.status(500).json({ success: false, message: "Error fetching job" });
     }
 };
+const updateJob = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const existingJob = await client_1.prisma.job.findUnique({
+            where: { id: Number(id) }
+        });
+        if (!existingJob) {
+            return res.status(404).json({ success: false, message: "Job not found" });
+        }
+        const job = await job_service_1.default.updateJob(Number(id), req.body);
+        res.status(200).json({ success: true, message: "Job updated successfully", job });
+    }
+    catch (error) {
+        console.log("Error updating job:", error);
+        return res.status(500).json({ success: false, message: "Error updating job" });
+    }
+};
 exports.default = {
     createJob,
     getAllJobs,
-    getJobById
+    getJobById,
+    updateJob
 };
