@@ -187,4 +187,15 @@ const updateJob = async (id, jobData) => {
     }
     return job;
 };
-exports.default = { createJob, getAllJobs, getJobById, updateJob };
+const deleteJob = async (id) => {
+    const job = await client_1.prisma.job.delete({
+        where: {
+            id
+        }
+    });
+    const keys = await client_2.redisClient.keys("jobs:*");
+    if (keys.length > 0) {
+        await client_2.redisClient.del(keys);
+    }
+};
+exports.default = { createJob, getAllJobs, getJobById, updateJob, deleteJob };

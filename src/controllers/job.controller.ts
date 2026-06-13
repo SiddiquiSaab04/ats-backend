@@ -52,9 +52,27 @@ const updateJob = async (req:Request , res:Response)=>{
    }
 }
 
+const deleteJob = async (req:Request , res:Response) =>{
+    try {
+      const {id} = req.params;
+      const existingJob = await prisma.job.findUnique({
+          where: { id: Number(id) }
+      });
+      if(!existingJob){
+          return res.status(404).json({ success: false, message: "Job not found" });
+      }
+      const job = await jobService.deleteJob(Number(id));
+      res.status(200).json({success:true, message:"Job deleted successfully",job});
+    } catch (error) {
+        console.log("Error deleting job:", error);
+        return res.status(500).json({ success: false, message: "Error deleting job" });
+    }
+}
+
 export default {
     createJob,
     getAllJobs,
     getJobById,
-    updateJob
+    updateJob,
+    deleteJob,
 }

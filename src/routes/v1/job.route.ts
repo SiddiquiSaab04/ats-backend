@@ -7,5 +7,6 @@ router.post("/", auth.auth, auth.authorizeRole("RECRUITER","ADMIN"), jobControll
 router.get("/", auth.auth, auth.authorizeRole("RECRUITER", "CANDIDATE","ADMIN"), jobController.getAllJobs);
 router.get("/:id",auth.auth,auth.authorizeRole("RECRUITER","CANDIDATE","ADMIN"),jobController.getJobById);
 router.put("/:id",auth.auth,auth.authorizeRole("RECRUITER","ADMIN"),jobController.updateJob);
+router.delete("/:id",auth.auth,auth.authorizeRole("RECRUITER","ADMIN"),jobController.deleteJob);
 
 export default router;
