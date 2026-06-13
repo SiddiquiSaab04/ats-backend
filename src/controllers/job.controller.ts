@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import jobService from "../services/job.service";
 import { parsePaginationQuery } from "../utils/pagination";
 import { prisma } from "../prisma/client";
-import { createJobSchema,updateJobSchema , getJobByIdSchema } from "../validators/jobs/job.validation";
+import { createJobSchema,updateJobSchema , getJobByIdSchema, getAllJobsSchema, deleteJobSchema } from "../validators/jobs/job.validation";
+
 const createJob = async (req: Request, res: Response) => {
  try {
     const userId = (req as any).user?.id as number;
@@ -22,6 +23,11 @@ const createJob = async (req: Request, res: Response) => {
 
 const getAllJobs = async (req: Request, res: Response) => {
  try {
+    const validationResult = getAllJobsSchema.safeParse(req.query);
+    if (!validationResult.success) {
+        return res.status(400).json({ success: false, message: "Invalid query parameters", errors: validationResult.error.issues });
+    }
+
     const { page, limit } = parsePaginationQuery(req);
     const result = await jobService.getAllJobs(page, limit);
     return res.status(200).json({ success: true, message: "Jobs fetched successfully", ...result });
@@ -36,6 +42,13 @@ const getJobById = async(req:Request , res:Response) =>{
       const validationResult = getJobByIdSchema.safeParse(req.params);
       if (!validationResult.success) {
           return res.status(400).json({ success: false, message: "Invalid job data", errors: validationResult.error.issues });
+      }
+
+      const existingJob = await prisma.job.findUnique({
+          where: { id: Number(validationResult.data.id) }
+      });
+      if(!existingJob){
+          return res.status(404).json({ success: false, message: "Job not found" });
       }
 
       const job = await jobService.getJobById(validationResult.data);
@@ -69,14 +82,17 @@ const updateJob = async (req:Request , res:Response)=>{
 
 const deleteJob = async (req:Request , res:Response) =>{
     try {
-      const {id} = req.params;
+      const validationResult = deleteJobSchema.safeParse(req.params);
+      if (!validationResult.success) {
+          return res.status(400).json({ success: false, message: "Invalid job data", errors: validationResult.error.issues });
+      }
       const existingJob = await prisma.job.findUnique({
-          where: { id: Number(id) }
+          where: { id: Number(validationResult.data.id) }
       });
       if(!existingJob){
           return res.status(404).json({ success: false, message: "Job not found" });
       }
-      const job = await jobService.deleteJob(Number(id));
+      const job = await jobService.deleteJob(Number(validationResult.data.id));
       res.status(200).json({success:true, message:"Job deleted successfully",job});
     } catch (error) {
         console.log("Error deleting job:", error);

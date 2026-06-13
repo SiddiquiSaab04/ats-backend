@@ -91,10 +91,10 @@ const getAllJobs = async (page = 1, limit = 10) => {
     });
     return jobs;
 };
-const getJobById = async (id) => {
+const getJobById = async (jobData) => {
     const job = await client_1.prisma.job.findUnique({
         where: {
-            id
+            id: jobData.id
         },
         include: {
             jobSkills: {

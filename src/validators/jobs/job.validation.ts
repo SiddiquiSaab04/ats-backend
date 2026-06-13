@@ -30,6 +30,23 @@ const getJobByIdSchema = z.object({
     id: z.coerce.number().min(1, "Job ID is required and must be positive"),
 });
 
+const getAllJobsSchema = z.object({
+    page: z.coerce.number().min(1, "Page is required and must be positive").optional(),
+    limit: z.coerce.number().min(1, "Limit is required and must be positive").optional(),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    requirements: z.string().optional(),
+    benefits: z.string().optional(),
+    location: z.string().optional(),
+    salary: z.string().optional(),
+    companyId: z.number().optional(),
+    jobType: z.enum(["FULL_TIME","PART_TIME","CONTRACT","INTERNSHIP","REMOTE","HYBRID","ON_SITE"]).optional(),
+    skills: z.array(z.number()).optional(),
+});
+
+const deleteJobSchema = z.object({
+    id: z.coerce.number().min(1, "Job ID is required and must be positive"),
+});
 
 
 
@@ -37,4 +54,6 @@ export {
     createJobSchema,
     updateJobSchema,
     getJobByIdSchema,
+    getAllJobsSchema,
+    deleteJobSchema
 };
