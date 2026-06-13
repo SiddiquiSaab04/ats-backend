@@ -2,10 +2,17 @@ import { Request, Response } from "express";
 import jobService from "../services/job.service";
 import { parsePaginationQuery } from "../utils/pagination";
 import { prisma } from "../prisma/client";
+import { createJobSchema } from "../validators/jobs/job.validation";
 const createJob = async (req: Request, res: Response) => {
  try {
     const userId = (req as any).user?.id as number;
-    const job = await jobService.createJob(req.body, userId);
+    const validationResult = createJobSchema.safeParse(req.body);
+    if (!validationResult.success) {
+        return res.status(400).json({ success: false, message: "Invalid job data", errors: validationResult.error.issues });
+    }
+    
+
+    const job = await jobService.createJob(validationResult.data, userId);
     return res.status(201).json({ success: true, message: "Job created successfully", job });
  } catch (error) {
     console.log("Error creating job:", error);    

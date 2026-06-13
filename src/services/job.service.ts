@@ -1,8 +1,12 @@
 import {prisma} from "../prisma/client";
 import {paginate} from "../utils/pagination";
 import {redisClient} from "../redis/client";
+import { z } from "zod";
+import { createJobSchema } from "../validators/jobs/job.validation";
 
-const createJob = async (jobData : any, userId : number) => {
+type CreateJobInput = z.infer<typeof createJobSchema>;
+
+const createJob = async (jobData : CreateJobInput , userId : number) => {
     const job = await prisma.job.create({
         data: {
             title: jobData.title,
@@ -12,7 +16,7 @@ const createJob = async (jobData : any, userId : number) => {
             location: jobData.location,
             salary: jobData.salary,
             companyId: Number(jobData.companyId),
-            jobType: jobData.jobType,
+            jobType: jobData.jobType as any,
             createdBy: Number(userId)
         }
     });

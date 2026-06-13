@@ -6,10 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const job_service_1 = __importDefault(require("../services/job.service"));
 const pagination_1 = require("../utils/pagination");
 const client_1 = require("../prisma/client");
+const job_validation_1 = require("../validators/jobs/job.validation");
 const createJob = async (req, res) => {
     try {
         const userId = req.user?.id;
-        const job = await job_service_1.default.createJob(req.body, userId);
+        const validationResult = job_validation_1.createJobSchema.safeParse(req.body);
+        if (!validationResult.success) {
+            return res.status(400).json({ success: false, message: "Invalid job data", errors: validationResult.error.issues });
+        }
+        const job = await job_service_1.default.createJob(validationResult.data, userId);
         return res.status(201).json({ success: true, message: "Job created successfully", job });
     }
     catch (error) {
