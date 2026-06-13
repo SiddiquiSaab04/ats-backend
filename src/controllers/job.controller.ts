@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import jobService from "../services/job.service";
 import { parsePaginationQuery } from "../utils/pagination";
 import { prisma } from "../prisma/client";
-import { createJobSchema,updateJobSchema } from "../validators/jobs/job.validation";
+import { createJobSchema,updateJobSchema , getJobByIdSchema } from "../validators/jobs/job.validation";
 const createJob = async (req: Request, res: Response) => {
  try {
     const userId = (req as any).user?.id as number;
@@ -33,8 +33,12 @@ const getAllJobs = async (req: Request, res: Response) => {
 
 const getJobById = async(req:Request , res:Response) =>{
    try {
-     const  {id} = req.params;
-     const job = await jobService.getJobById(Number(id));
+      const validationResult = getJobByIdSchema.safeParse(req.params);
+      if (!validationResult.success) {
+          return res.status(400).json({ success: false, message: "Invalid job data", errors: validationResult.error.issues });
+      }
+
+      const job = await jobService.getJobById(validationResult.data);
      res.status(200).json({success:true, message:"Job fetched successfully",job});
    } catch (error) {
      console.log("Error fetching job:", error);    

@@ -26,7 +26,15 @@ const updateJobSchema = z.object({
 });
 
 
+const getJobByIdSchema = z.object({
+    id: z.coerce.number().min(1, "Job ID is required and must be positive"),
+});
+
+
+
+
 export {
     createJobSchema,
-    updateJobSchema
+    updateJobSchema,
+    getJobByIdSchema,
 };
