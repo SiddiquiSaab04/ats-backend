@@ -18,7 +18,6 @@ exports.parsePaginationQuery = exports.paginate = void 0;
  */
 const paginate = async (model, { page, limit }, options = {}) => {
     const skip = (page - 1) * limit;
-    // Extract 'where' from options so count() uses the same filter
     const { where, ...rest } = options;
     const [data, totalRecords] = await Promise.all([
         model.findMany({
@@ -43,10 +42,6 @@ const paginate = async (model, { page, limit }, options = {}) => {
     };
 };
 exports.paginate = paginate;
-/**
- * Parse and validate pagination query params from an Express request.
- * Defaults: page = 1, limit = 10. Limit is capped at maxLimit (default 100).
- */
 const parsePaginationQuery = (req, maxLimit = 100) => {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(maxLimit, Math.max(1, parseInt(req.query.limit) || 10));

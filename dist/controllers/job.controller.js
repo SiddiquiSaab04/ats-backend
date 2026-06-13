@@ -27,7 +27,19 @@ const getAllJobs = async (req, res) => {
         return res.status(500).json({ success: false, message: "Error fetching jobs" });
     }
 };
+const getJobById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const job = await job_service_1.default.getJobById(Number(id));
+        res.status(200).json({ success: true, message: "Job fetched successfully", job });
+    }
+    catch (error) {
+        console.log("Error fetching job:", error);
+        return res.status(500).json({ success: false, message: "Error fetching job" });
+    }
+};
 exports.default = {
     createJob,
     getAllJobs,
+    getJobById
 };
