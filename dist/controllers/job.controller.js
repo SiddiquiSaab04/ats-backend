@@ -53,7 +53,11 @@ const updateJob = async (req, res) => {
         if (!existingJob) {
             return res.status(404).json({ success: false, message: "Job not found" });
         }
-        const job = await job_service_1.default.updateJob(Number(id), req.body);
+        const validationResult = job_validation_1.updateJobSchema.safeParse(req.body);
+        if (!validationResult.success) {
+            return res.status(400).json({ success: false, message: "Invalid job data", errors: validationResult.error.issues });
+        }
+        const job = await job_service_1.default.updateJob(Number(id), validationResult.data);
         res.status(200).json({ success: true, message: "Job updated successfully", job });
     }
     catch (error) {

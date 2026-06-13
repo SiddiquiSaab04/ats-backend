@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import jobService from "../services/job.service";
 import { parsePaginationQuery } from "../utils/pagination";
 import { prisma } from "../prisma/client";
-import { createJobSchema } from "../validators/jobs/job.validation";
+import { createJobSchema,updateJobSchema } from "../validators/jobs/job.validation";
 const createJob = async (req: Request, res: Response) => {
  try {
     const userId = (req as any).user?.id as number;
@@ -51,7 +51,11 @@ const updateJob = async (req:Request , res:Response)=>{
     if(!existingJob){
         return res.status(404).json({ success: false, message: "Job not found" });
     }
-    const job = await jobService.updateJob(Number(id),req.body);
+    const validationResult = updateJobSchema.safeParse(req.body);
+    if (!validationResult.success) {
+        return res.status(400).json({ success: false, message: "Invalid job data", errors: validationResult.error.issues });
+    }
+    const job = await jobService.updateJob(Number(id),validationResult.data);
     res.status(200).json({success:true, message:"Job updated successfully",job});
    } catch (error) {
     console.log("Error updating job:", error);    

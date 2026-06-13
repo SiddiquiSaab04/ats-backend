@@ -2,9 +2,10 @@ import {prisma} from "../prisma/client";
 import {paginate} from "../utils/pagination";
 import {redisClient} from "../redis/client";
 import { z } from "zod";
-import { createJobSchema } from "../validators/jobs/job.validation";
+import { createJobSchema , updateJobSchema } from "../validators/jobs/job.validation";
 
 type CreateJobInput = z.infer<typeof createJobSchema>;
+type UpdateJobInput = z.infer<typeof updateJobSchema>;
 
 const createJob = async (jobData : CreateJobInput , userId : number) => {
     const job = await prisma.job.create({
@@ -157,7 +158,7 @@ const getJobById = async (id : number) => {
 }
 
 
-const updateJob = async (id : number , jobData : any) => {
+const updateJob = async (id : number , jobData : UpdateJobInput) => {
 
     const job = await prisma.job.update({
         where: {
