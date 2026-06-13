@@ -1,15 +1,14 @@
 import {prisma} from "../prisma/client";
 import {paginate} from "../utils/pagination";
 import {redisClient} from "../redis/client";
-import { z } from "zod";
-import { createJobSchema , updateJobSchema , getJobByIdSchema
- } from "../validators/jobs/job.validation";
+import {z} from "zod";
+import {createJobSchema, updateJobSchema, getJobByIdSchema} from "../validators/jobs/job.validation";
 
 type CreateJobInput = z.infer<typeof createJobSchema>;
 type UpdateJobInput = z.infer<typeof updateJobSchema>;
 type GetJobByIdInput = z.infer<typeof getJobByIdSchema>;
 
-const createJob = async (jobData : CreateJobInput , userId : number) => {
+const createJob = async (jobData : CreateJobInput, userId : number) => {
     const job = await prisma.job.create({
         data: {
             title: jobData.title,
@@ -64,9 +63,9 @@ const createJob = async (jobData : CreateJobInput , userId : number) => {
     return createdJob;
 }
 
-const getAllJobs = async (page : number = 1, limit : number = 10) => {
+const getAllJobs = async (page : number = 1, limit : number = 10 , search="") => {
 
-    const cacheKey = `jobs:${page}:${limit}`;
+    const cacheKey = `jobs:${page}:${limit}:${search || "all"}`;
 
     const cachedJobs = await redisClient.get(cacheKey);
     if (cachedJobs) {
@@ -75,8 +74,28 @@ const getAllJobs = async (page : number = 1, limit : number = 10) => {
 
     const result = await paginate(prisma.job, {
         page,
-        limit
+        limit,
+        search
     }, {
+        where: search ? {
+            OR: [
+                {
+                    title: {
+                        contains: search
+                    }
+                },
+                {
+                    location: {
+                        contains: search
+                    }
+                },
+                {
+                    salary: {
+                        contains: search
+                    }
+                }
+            ]
+        } : undefined,
         orderBy: {
             createdAt: 'asc'
         },
@@ -160,7 +179,7 @@ const getJobById = async (jobData : GetJobByIdInput) => {
 }
 
 
-const updateJob = async (id : number , jobData : UpdateJobInput) => {
+const updateJob = async (id : number, jobData : UpdateJobInput) => {
 
     const job = await prisma.job.update({
         where: {
@@ -184,22 +203,22 @@ const updateJob = async (id : number , jobData : UpdateJobInput) => {
             jobType: jobData.jobType
         }
     });
-
-     if (jobData.skills && jobData.skills.length > 0) {
-        // Delete existing skills for this job
+    if (jobData.skills && jobData.skills.length > 0) { // Delete existing skills for this job
         await prisma.jobSkill.deleteMany({
-            where: { jobId: job.id }
+            where: {
+                jobId: job.id
+            }
         });
 
         // Create the new skills
         await prisma.jobSkill.createMany({
             data: jobData.skills.map(
-                (skillId: number) => ({jobId: Number(id),skillId: Number(skillId) })
+                (skillId : number) => ({jobId: Number(id), skillId: Number(skillId)})
             )
         });
     }
 
-    if(job){
+    if (job) {
         const keys = await redisClient.keys("jobs:*");
         if (keys.length > 0) {
             await redisClient.del(keys);
@@ -218,11 +237,16 @@ const updateJob = async (id : number , jobData : UpdateJobInput) => {
             }
         });
 
-        if(updatedJob){
-            const {jobSkills, ...rest} = updatedJob;
+        if (updatedJob) {
+            const {
+                jobSkills,
+                ...rest
+            } = updatedJob;
             return {
                 ...rest,
-                skills: jobSkills.map((js: any) => js.skill.name),
+                skills: jobSkills.map(
+                    (js : any) => js.skill.name
+                ),
                 company: {
                     id: updatedJob.companyId,
                     name: updatedJob.company.name,
@@ -236,15 +260,19 @@ const updateJob = async (id : number , jobData : UpdateJobInput) => {
 }
 
 const deleteJob = async (id : number) => {
-    const job = await prisma.job.delete({
-        where: {
+    const job = await prisma.job.delete({where: {
             id
-        }
-    });
+        }});
     const keys = await redisClient.keys("jobs:*");
     if (keys.length > 0) {
         await redisClient.del(keys);
     }
-}   
+}
 
-export default {createJob, getAllJobs, getJobById, updateJob, deleteJob}
+export default {
+    createJob,
+    getAllJobs,
+    getJobById,
+    updateJob,
+    deleteJob
+}

@@ -48,16 +48,36 @@ const createJob = async (jobData, userId) => {
     }
     return createdJob;
 };
-const getAllJobs = async (page = 1, limit = 10) => {
-    const cacheKey = `jobs:${page}:${limit}`;
+const getAllJobs = async (page = 1, limit = 10, search = "") => {
+    const cacheKey = `jobs:${page}:${limit}:${search || "all"}`;
     const cachedJobs = await client_2.redisClient.get(cacheKey);
     if (cachedJobs) {
         return JSON.parse(cachedJobs);
     }
     const result = await (0, pagination_1.paginate)(client_1.prisma.job, {
         page,
-        limit
+        limit,
+        search
     }, {
+        where: search ? {
+            OR: [
+                {
+                    title: {
+                        contains: search
+                    }
+                },
+                {
+                    location: {
+                        contains: search
+                    }
+                },
+                {
+                    salary: {
+                        contains: search
+                    }
+                }
+            ]
+        } : undefined,
         orderBy: {
             createdAt: 'asc'
         },
@@ -143,10 +163,11 @@ const updateJob = async (id, jobData) => {
             jobType: jobData.jobType
         }
     });
-    if (jobData.skills && jobData.skills.length > 0) {
-        // Delete existing skills for this job
+    if (jobData.skills && jobData.skills.length > 0) { // Delete existing skills for this job
         await client_1.prisma.jobSkill.deleteMany({
-            where: { jobId: job.id }
+            where: {
+                jobId: job.id
+            }
         });
         // Create the new skills
         await client_1.prisma.jobSkill.createMany({
@@ -188,14 +209,18 @@ const updateJob = async (id, jobData) => {
     return job;
 };
 const deleteJob = async (id) => {
-    const job = await client_1.prisma.job.delete({
-        where: {
+    const job = await client_1.prisma.job.delete({ where: {
             id
-        }
-    });
+        } });
     const keys = await client_2.redisClient.keys("jobs:*");
     if (keys.length > 0) {
         await client_2.redisClient.del(keys);
     }
 };
-exports.default = { createJob, getAllJobs, getJobById, updateJob, deleteJob };
+exports.default = {
+    createJob,
+    getAllJobs,
+    getJobById,
+    updateJob,
+    deleteJob
+};

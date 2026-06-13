@@ -8,6 +8,7 @@ exports.parsePaginationQuery = exports.paginate = void 0;
  * @param params  - { page, limit }
  * @param options - Prisma findMany options (where, include, orderBy, select, etc.)
  *                  Do NOT pass skip/take — they are computed automatically.
+ * @param search  - Search params
  * @returns       - { data, pagination }
  *
  * @example
@@ -45,6 +46,7 @@ exports.paginate = paginate;
 const parsePaginationQuery = (req, maxLimit = 100) => {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(maxLimit, Math.max(1, parseInt(req.query.limit) || 10));
-    return { page, limit };
+    const search = req.query.search;
+    return { page, limit, search };
 };
 exports.parsePaginationQuery = parsePaginationQuery;

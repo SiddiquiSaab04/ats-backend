@@ -28,8 +28,8 @@ const getAllJobs = async (req: Request, res: Response) => {
         return res.status(400).json({ success: false, message: "Invalid query parameters", errors: validationResult.error.issues });
     }
 
-    const { page, limit } = parsePaginationQuery(req);
-    const result = await jobService.getAllJobs(page, limit);
+    const { page, limit , search } = parsePaginationQuery(req);
+    const result = await jobService.getAllJobs(page, limit , search);
     return res.status(200).json({ success: true, message: "Jobs fetched successfully", ...result });
  } catch (error) {
     console.log("Error fetching jobs:", error);    

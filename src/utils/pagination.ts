@@ -3,6 +3,7 @@ import { Request } from "express";
 interface PaginationParams {
     page: number;
     limit: number;
+    search?:string;
 }
 
 interface PaginatedResult<T> {
@@ -24,6 +25,7 @@ interface PaginatedResult<T> {
  * @param params  - { page, limit }
  * @param options - Prisma findMany options (where, include, orderBy, select, etc.)
  *                  Do NOT pass skip/take — they are computed automatically.
+ * @param search  - Search params
  * @returns       - { data, pagination }
  *
  * @example
@@ -69,7 +71,8 @@ const paginate = async <T>(
 const parsePaginationQuery = (req: Request, maxLimit: number = 100): PaginationParams => {
     const page = Math.max(1, parseInt(req.query.page as string) || 1);
     const limit = Math.min(maxLimit, Math.max(1, parseInt(req.query.limit as string) || 10));
-    return { page, limit };
+    const search = req.query.search as string;
+    return { page, limit ,search };
 };
 
 export { paginate, parsePaginationQuery, PaginatedResult, PaginationParams };
