@@ -19,9 +19,9 @@ const updateJobSchema = zod_1.z.object({
     description: zod_1.z.string().min(1, "Description is required").optional(),
     requirements: zod_1.z.string().optional().default(""),
     benefits: zod_1.z.string().optional().default(""),
-    location: zod_1.z.string().min(1, "Location is required").optional(),
-    salary: zod_1.z.string().min(1, "Salary is required").optional(),
-    companyId: zod_1.z.number().min(1, "Company ID is required").optional(),
+    location: zod_1.z.string().optional(),
+    salary: zod_1.z.string().optional(),
+    companyId: zod_1.z.number().optional(),
     jobType: zod_1.z.enum(["FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP", "REMOTE", "HYBRID", "ON_SITE"]).optional(),
     skills: zod_1.z.array(zod_1.z.number()).optional(),
 });

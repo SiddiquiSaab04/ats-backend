@@ -2,7 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
-import routes from "./routes/index"
+import routes from "./routes/index";
+import errorHandler from "./middlewares/error.middleware";
 dotenv.config();
 
 const app = express();
@@ -15,6 +16,8 @@ app.use("/v1",routes);
 app.get("/", (req, res) => {
   res.send("ATS API Running");
 });
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const auth_service_1 = __importDefault(require("../services/auth.service"));
-const signup = async (req, res) => {
+const signup = async (req, res, next) => {
     try {
         const { name, email, password, role } = req.body;
         if (!name || !email || !password || !role) {
@@ -18,10 +18,10 @@ const signup = async (req, res) => {
     }
     catch (error) {
         console.log("Error signing up:", error);
-        return res.status(500).json({ success: false, message: "Error signing up", error });
+        next(error);
     }
 };
-const login = async (req, res) => {
+const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
@@ -34,8 +34,7 @@ const login = async (req, res) => {
         return res.status(200).json({ success: true, message: "User logged in successfully", user: loginUser });
     }
     catch (error) {
-        console.log("Error logging in:", error);
-        return res.status(500).json({ success: false, message: "Error logging in" });
+        next(error);
     }
 };
 exports.default = {

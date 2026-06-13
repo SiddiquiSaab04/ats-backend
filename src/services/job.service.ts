@@ -199,7 +199,7 @@ const updateJob = async (id : number, jobData : UpdateJobInput) => {
             benefits: jobData.benefits,
             location: jobData.location,
             salary: jobData.salary,
-            companyId: Number(jobData.companyId),
+            companyId: jobData.companyId,
             jobType: jobData.jobType
         }
     });
