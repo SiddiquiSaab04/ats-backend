@@ -56,16 +56,18 @@ const createJob = async (jobData : CreateJobInput, userId : number) => {
         return {
             ...rest,
             skills: jobSkills.map(
-                (js : any) => js.skill
+                (js : any) => js.skill.name
             )
         };
     }
     return createdJob;
 }
 
-const getAllJobs = async (page : number = 1, limit : number = 10 , search="") => {
+const getAllJobs = async (page : number = 1, limit : number = 10, search = "") => {
 
-    const cacheKey = `jobs:${page}:${limit}:${search || "all"}`;
+    const cacheKey = `jobs:${page}:${limit}:${
+        search || "all"
+    }`;
 
     const cachedJobs = await redisClient.get(cacheKey);
     if (cachedJobs) {
@@ -83,13 +85,11 @@ const getAllJobs = async (page : number = 1, limit : number = 10 , search="") =>
                     title: {
                         contains: search
                     }
-                },
-                {
+                }, {
                     location: {
                         contains: search
                     }
-                },
-                {
+                }, {
                     salary: {
                         contains: search
                     }
