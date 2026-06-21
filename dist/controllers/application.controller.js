@@ -4,14 +4,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const application_service_1 = __importDefault(require("../services/application.service"));
+const application_validation_1 = require("../validators/applications/application.validation");
 const createApplication = async (req, res) => {
     try {
         const candidateId = req.user.id;
+        const validatedData = application_validation_1.createApplicationSchema.parse({ ...req.body, candidateId });
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Resume file is required" });
         }
         const applicationData = {
-            ...req.body,
+            ...validatedData,
             candidateId,
             resume: req.file.buffer
         };

@@ -1,15 +1,18 @@
 import { Request, Response } from "express";
 import applicationService from "../services/application.service";
+import  {createApplicationSchema}  from "../validators/applications/application.validation";
+
 const createApplication = async (req: Request, res: Response) => {
     try {
         const candidateId = (req as any).user.id;
+        const validatedData = createApplicationSchema.parse({ ...req.body, candidateId });
 
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Resume file is required" });
         }
 
         const applicationData = {
-            ...req.body,
+            ...validatedData,
             candidateId,
             resume: req.file.buffer
         };

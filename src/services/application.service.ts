@@ -1,26 +1,37 @@
-import { prisma } from "../prisma/client";
-import { Request , NextFunction, Response } from "express";
+import {prisma} from "../prisma/client";
+import {Request, NextFunction, Response} from "express";
 import supabase from "../config/supabase";
-const createApplication = async (data: any) => {
-    try {
+import {createApplicationSchema} from "../validators/applications/application.validation"
+import {z} from "zod";
+type BaseApplicationData = z.infer<typeof createApplicationSchema>;
 
-        const uploadResume = await supabase.storage.from("ATS").upload(`resume_${data.candidateId}_${Date.now()}.pdf`, data.resume);
+type createApplicationInput = BaseApplicationData & {
+    resume: Buffer | File;
+};
+
+const createApplication = async (data : createApplicationInput) => {
+    try {
+        const uploadResume = await supabase.storage.from("ATS").upload(`resume_${
+            data.candidateId
+        }_${
+            Date.now()
+        }.pdf`, data.resume, { contentType: "application/pdf" });
 
         if (uploadResume.error) {
             throw uploadResume.error;
         }
 
         const application = await prisma.application.create({
-            data:{
-                candidateId:data.candidateId,
-                jobId:Number(data.jobId),
-                userName:data.userName,
-                email:data.email,
-                phone:data.phone,
-                location:data.location,
-                resumeUrl:uploadResume.data.path,
-                coverLetter:data.coverLetter,
-                status:data.status,
+            data: {
+                candidateId: Number(data.candidateId),
+                jobId: Number(data.jobId),
+                userName: data.userName as string,
+                email: data.email as string,
+                phone: data.phone as string,
+                location: data.location as string,
+                resumeUrl: uploadResume.data.path as string,
+                coverLetter: data.coverLetter as string,
+                status: "APPLIED"
             }
         })
         console.log("application created successfully");
@@ -31,6 +42,4 @@ const createApplication = async (data: any) => {
     }
 }
 
-export default {
-    createApplication
-}
+export default {createApplication}

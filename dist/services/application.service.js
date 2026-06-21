@@ -7,13 +7,13 @@ const client_1 = require("../prisma/client");
 const supabase_1 = __importDefault(require("../config/supabase"));
 const createApplication = async (data) => {
     try {
-        const uploadResume = await supabase_1.default.storage.from("ATS").upload(`resume_${data.candidateId}_${Date.now()}.pdf`, data.resume);
+        const uploadResume = await supabase_1.default.storage.from("ATS").upload(`resume_${data.candidateId}_${Date.now()}.pdf`, data.resume, { contentType: "application/pdf" });
         if (uploadResume.error) {
             throw uploadResume.error;
         }
         const application = await client_1.prisma.application.create({
             data: {
-                candidateId: data.candidateId,
+                candidateId: Number(data.candidateId),
                 jobId: Number(data.jobId),
                 userName: data.userName,
                 email: data.email,
@@ -21,7 +21,7 @@ const createApplication = async (data) => {
                 location: data.location,
                 resumeUrl: uploadResume.data.path,
                 coverLetter: data.coverLetter,
-                status: data.status,
+                status: "APPLIED"
             }
         });
         console.log("application created successfully");
@@ -32,6 +32,4 @@ const createApplication = async (data) => {
         throw error;
     }
 };
-exports.default = {
-    createApplication
-};
+exports.default = { createApplication };
