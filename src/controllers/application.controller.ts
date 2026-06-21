@@ -1,18 +1,43 @@
-import { Request, Response } from "express";
+import { prisma } from "../prisma/client";
+import { Request, Response,NextFunction } from "express";
 import applicationService from "../services/application.service";
 import  {createApplicationSchema}  from "../validators/applications/application.validation";
+import { AppError } from "../utils/AppError";
 
-const createApplication = async (req: Request, res: Response) => {
+const createApplication = async (req: Request, res: Response, next:NextFunction) => {
     try {
         const candidateId = (req as any).user.id;
-        const validatedData = createApplicationSchema.parse({ ...req.body, candidateId });
+        const validationResult = createApplicationSchema.safeParse({ ...req.body, candidateId });
+        if (!validationResult.success) {
+            throw new AppError("Invalid application data", 400);
+        }
 
         if (!req.file) {
-            return res.status(400).json({ success: false, message: "Resume file is required" });
+            throw new AppError("Resume file is required", 400);
+        }
+
+        const existingJob = await prisma.job.findUnique({
+            where: { id: Number(validationResult.data.jobId) }
+        });
+        
+        if(!existingJob ){
+           throw new AppError("Job not found", 404);
+        }
+
+        if(existingJob.status === "EXPIRED"){
+            throw new AppError("Job is expired", 400);
+        }
+
+        const existingApplication = await prisma.application.findFirst({
+            where: { jobId: Number(validationResult.data.jobId), candidateId }
+        });
+
+        if(existingApplication){
+            throw new AppError("You have already applied for this job", 400);
         }
 
         const applicationData = {
-            ...validatedData,
+            ...validationResult.data,
             candidateId,
             resume: req.file.buffer
         };
@@ -20,8 +45,7 @@ const createApplication = async (req: Request, res: Response) => {
         const application = await applicationService.createApplication(applicationData);
         return res.status(200).json({ success: true, message: "Application created successfully", application });
     } catch (error) {
-        console.error("Error creating application:", error);
-        return res.status(500).json({ success: false, message: "Error creating application" });
+        next(error);
     }
 }
 

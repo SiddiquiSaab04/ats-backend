@@ -10,6 +10,7 @@ const createJobSchema = z.object({
     companyId: z.number().min(1, "Company ID is required"),
     jobType: z.enum(["FULL_TIME","PART_TIME","CONTRACT","INTERNSHIP","REMOTE","HYBRID","ON_SITE"]),
     skills: z.array(z.number()).optional(),
+    validTill: z.coerce.date(),
 });
 
 
@@ -23,6 +24,7 @@ const updateJobSchema = z.object({
     companyId: z.number().optional(),
     jobType: z.enum(["FULL_TIME","PART_TIME","CONTRACT","INTERNSHIP","REMOTE","HYBRID","ON_SITE"]).optional(),
     skills: z.array(z.number()).optional(),
+    validTill: z.coerce.date().optional(),
 });
 
 
@@ -42,6 +44,7 @@ const getAllJobsSchema = z.object({
     companyId: z.number().optional(),
     jobType: z.enum(["FULL_TIME","PART_TIME","CONTRACT","INTERNSHIP","REMOTE","HYBRID","ON_SITE"]).optional(),
     skills: z.array(z.number()).optional(),
+    validTill: z.coerce.date().optional(),
 });
 
 const deleteJobSchema = z.object({

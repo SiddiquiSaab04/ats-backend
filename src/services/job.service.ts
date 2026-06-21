@@ -19,7 +19,8 @@ const createJob = async (jobData : CreateJobInput, userId : number) => {
             salary: jobData.salary,
             companyId: Number(jobData.companyId),
             jobType: jobData.jobType as any,
-            createdBy: Number(userId)
+            createdBy: Number(userId),
+            validTill: jobData.validTill,
         }
     });
     if (jobData.skills && jobData.skills.length > 0) {
@@ -200,7 +201,8 @@ const updateJob = async (id : number, jobData : UpdateJobInput) => {
             location: jobData.location,
             salary: jobData.salary,
             companyId: jobData.companyId,
-            jobType: jobData.jobType
+            jobType: jobData.jobType,
+            validTill: jobData.validTill,
         }
     });
     if (jobData.skills && jobData.skills.length > 0) { // Delete existing skills for this job

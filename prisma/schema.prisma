@@ -6,12 +6,19 @@ generator client {
 
 datasource db {
   provider = "mysql"
+  relationMode = "prisma"
 }
 
 enum Role {
   CANDIDATE
   RECRUITER
   ADMIN
+}
+
+enum JobStatus{
+  OPEN
+  CLOSED
+  EXPIRED
 }
 
 enum ApplicationStatus {
@@ -88,6 +95,8 @@ model Job {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   createdBy Int
+  validTill DateTime
+  status JobStatus @default(OPEN)
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
   applications Application[]
