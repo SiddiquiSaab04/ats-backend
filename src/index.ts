@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import routes from "./routes/index";
 import errorHandler from "./middlewares/error.middleware";
+
 dotenv.config();
 
 const app = express();
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(helmet());
 app.use(cors());
 app.use("/v1",routes);
+
 app.get("/", (req, res) => {
   res.send("ATS API Running");
 });

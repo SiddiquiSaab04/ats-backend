@@ -101,6 +101,11 @@ model Application{
   status ApplicationStatus @default(PENDING)
   resumeUrl String?
   coverLetter String?
+  userName String?
+  jobTitle String?
+  email String?
+  phone String?
+  location String?
   appliedAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   candidate User @relation(fields: [candidateId], references: [id], onDelete: Cascade)

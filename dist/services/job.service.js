@@ -43,7 +43,7 @@ const createJob = async (jobData, userId) => {
         const { jobSkills, ...rest } = createdJob;
         return {
             ...rest,
-            skills: jobSkills.map((js) => js.skill)
+            skills: jobSkills.map((js) => js.skill.name)
         };
     }
     return createdJob;
@@ -65,13 +65,11 @@ const getAllJobs = async (page = 1, limit = 10, search = "") => {
                     title: {
                         contains: search
                     }
-                },
-                {
+                }, {
                     location: {
                         contains: search
                     }
-                },
-                {
+                }, {
                     salary: {
                         contains: search
                     }
