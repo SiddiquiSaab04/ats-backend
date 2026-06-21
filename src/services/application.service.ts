@@ -15,7 +15,6 @@ const createApplication = async (data: any) => {
                 candidateId:data.candidateId,
                 jobId:Number(data.jobId),
                 userName:data.userName,
-                jobTitle:data.jobTitle,
                 email:data.email,
                 phone:data.phone,
                 location:data.location,

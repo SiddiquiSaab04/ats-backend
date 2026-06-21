@@ -102,7 +102,6 @@ model Application{
   resumeUrl String?
   coverLetter String?
   userName String?
-  jobTitle String?
   email String?
   phone String?
   location String?

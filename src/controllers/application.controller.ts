@@ -3,7 +3,6 @@ import applicationService from "../services/application.service";
 const createApplication = async (req: Request, res: Response) => {
     try {
         const candidateId = (req as any).user.id;
-        const email = (req as any).user.email;
 
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Resume file is required" });
@@ -12,7 +11,6 @@ const createApplication = async (req: Request, res: Response) => {
         const applicationData = {
             ...req.body,
             candidateId,
-            email,
             resume: req.file.buffer
         };
 

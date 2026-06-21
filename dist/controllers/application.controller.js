@@ -7,14 +7,12 @@ const application_service_1 = __importDefault(require("../services/application.s
 const createApplication = async (req, res) => {
     try {
         const candidateId = req.user.id;
-        const email = req.user.email;
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Resume file is required" });
         }
         const applicationData = {
             ...req.body,
             candidateId,
-            email,
             resume: req.file.buffer
         };
         const application = await application_service_1.default.createApplication(applicationData);

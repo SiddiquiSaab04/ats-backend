@@ -71,6 +71,10 @@ CREATE TABLE `Application` (
     `status` ENUM('PENDING', 'APPLIED', 'SHORTLISTED', 'INTERVIEW', 'OFFERED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
     `resumeUrl` VARCHAR(191) NULL,
     `coverLetter` VARCHAR(191) NULL,
+    `userName` VARCHAR(191) NULL,
+    `email` VARCHAR(191) NULL,
+    `phone` VARCHAR(191) NULL,
+    `location` VARCHAR(191) NULL,
     `appliedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
