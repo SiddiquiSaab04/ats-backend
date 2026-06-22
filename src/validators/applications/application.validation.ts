@@ -10,6 +10,12 @@ const createApplicationSchema = z.object({
     coverLetter: z.string().min(1, "Cover letter is required"),
 });
 
+const getAllApplicationsForJobSchema = z.object({    
+    page: z.coerce.number().min(1, "Page is required").optional(),
+    limit: z.coerce.number().min(1, "Limit is required").optional(),
+});
+
 export {
-    createApplicationSchema
+    createApplicationSchema,
+    getAllApplicationsForJobSchema
 }

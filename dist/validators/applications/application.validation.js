@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createApplicationSchema = void 0;
+exports.getAllApplicationsForJobSchema = exports.createApplicationSchema = void 0;
 const zod_1 = require("zod");
 const createApplicationSchema = zod_1.z.object({
     jobId: zod_1.z.coerce.number().min(1, "Job ID is required"),
@@ -12,3 +12,8 @@ const createApplicationSchema = zod_1.z.object({
     coverLetter: zod_1.z.string().min(1, "Cover letter is required"),
 });
 exports.createApplicationSchema = createApplicationSchema;
+const getAllApplicationsForJobSchema = zod_1.z.object({
+    page: zod_1.z.coerce.number().min(1, "Page is required").optional(),
+    limit: zod_1.z.coerce.number().min(1, "Limit is required").optional(),
+});
+exports.getAllApplicationsForJobSchema = getAllApplicationsForJobSchema;

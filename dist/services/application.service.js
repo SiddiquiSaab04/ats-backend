@@ -32,4 +32,48 @@ const createApplication = async (data) => {
         throw error;
     }
 };
-exports.default = { createApplication };
+const getAllApplicationsForJob = async (candidateId, page = 1, limit = 10) => {
+    try {
+        const applicationList = await client_1.prisma.application.findMany({
+            where: {
+                candidateId: Number(candidateId)
+            },
+            include: {
+                job: {
+                    omit: {
+                        requirements: true,
+                        benefits: true,
+                        createdBy: true,
+                        companyId: true,
+                        updatedAt: true,
+                        createdAt: true,
+                    },
+                    include: {
+                        company: {
+                            select: {
+                                name: true
+                            }
+                        }
+                    }
+                }
+            },
+        });
+        const totalCount = await client_1.prisma.application.count({
+            where: {
+                candidateId: Number(candidateId)
+            }
+        });
+        console.log("applications fetched successfully");
+        return {
+            data: applicationList,
+            page,
+            limit,
+            totalCount
+        };
+    }
+    catch (error) {
+        console.log("error in fetching applications", error);
+        throw error;
+    }
+};
+exports.default = { createApplication, getAllApplicationsForJob };

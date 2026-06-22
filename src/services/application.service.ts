@@ -1,21 +1,19 @@
-import {prisma} from "../prisma/client";
-import {Request, NextFunction, Response} from "express";
+import { prisma } from "../prisma/client";
+import { Request, NextFunction, Response } from "express";
 import supabase from "../config/supabase";
-import {createApplicationSchema} from "../validators/applications/application.validation"
-import {z} from "zod";
+import { createApplicationSchema } from "../validators/applications/application.validation"
+import { z } from "zod";
 type BaseApplicationData = z.infer<typeof createApplicationSchema>;
 
 type createApplicationInput = BaseApplicationData & {
     resume: Buffer | File;
 };
 
-const createApplication = async (data : createApplicationInput) => {
+const createApplication = async (data: createApplicationInput) => {
     try {
-        const uploadResume = await supabase.storage.from("ATS").upload(`resume_${
-            data.candidateId
-        }_${
-            Date.now()
-        }.pdf`, data.resume, { contentType: "application/pdf" });
+        const uploadResume = await supabase.storage.from("ATS").upload(`resume_${data.candidateId
+            }_${Date.now()
+            }.pdf`, data.resume, { contentType: "application/pdf" });
 
         if (uploadResume.error) {
             throw uploadResume.error;
@@ -42,4 +40,49 @@ const createApplication = async (data : createApplicationInput) => {
     }
 }
 
-export default {createApplication}
+const getAllApplicationsForJob = async (candidateId: number, page: number = 1, limit: number = 10) => {
+    try {
+        const applicationList = await prisma.application.findMany({
+            where: {
+                candidateId: Number(candidateId)
+            },
+            include: {
+                job: {
+                    omit: {
+                        requirements: true,
+                        benefits: true,
+                        createdBy: true,
+                        companyId: true,
+                        updatedAt: true,
+                        createdAt: true,
+                    },
+                    include: {
+                        company: {
+                            select: {
+                                name: true
+                            }
+                        }
+                    }
+                }
+            },
+        })
+
+        const totalCount = await prisma.application.count({
+            where: {
+                candidateId: Number(candidateId)
+            }
+        });
+        console.log("applications fetched successfully");
+        return {
+            data: applicationList,
+            page,
+            limit,
+            totalCount
+        };
+    } catch (error) {
+        console.log("error in fetching applications", error);
+        throw error;
+    }
+}
+
+export default { createApplication, getAllApplicationsForJob }

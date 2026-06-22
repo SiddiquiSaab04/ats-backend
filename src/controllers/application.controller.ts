@@ -1,9 +1,9 @@
 import { prisma } from "../prisma/client";
 import { Request, Response,NextFunction } from "express";
 import applicationService from "../services/application.service";
-import  {createApplicationSchema}  from "../validators/applications/application.validation";
+import  {createApplicationSchema,getAllApplicationsForJobSchema}  from "../validators/applications/application.validation";
 import { AppError } from "../utils/AppError";
-
+import { parsePaginationQuery } from "../utils/pagination";
 const createApplication = async (req: Request, res: Response, next:NextFunction) => {
     try {
         const candidateId = (req as any).user.id;
@@ -57,6 +57,22 @@ const createApplication = async (req: Request, res: Response, next:NextFunction)
     }
 }
 
+const getAllApplicationsForJob = async (req: Request, res: Response, next:NextFunction) => {
+    try {
+        const candidateId = (req as any).user.id;
+        const validationResult = getAllApplicationsForJobSchema.safeParse({ ...req.query, candidateId });
+        if (!validationResult.success) {
+            throw new AppError("Invalid query parameters", 400);
+        }
+        const {page,limit} = parsePaginationQuery(req);
+        const applications = await applicationService.getAllApplicationsForJob(candidateId, page, limit);
+        return res.status(200).json({ success: true, message: "Applications fetched successfully", applications });
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
     createApplication,
+    getAllApplicationsForJob
 }
