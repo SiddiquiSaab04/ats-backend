@@ -1,7 +1,7 @@
 import { prisma } from "../prisma/client";
 import { Request, Response,NextFunction } from "express";
 import applicationService from "../services/application.service";
-import  {createApplicationSchema,getAllApplicationsForJobSchema,updateApplicationSchema}  from "../validators/applications/application.validation";
+import  {createApplicationSchema,getAllApplicationsForJobSchema,updateApplicationSchema,deleteApplicationSchema}  from "../validators/applications/application.validation";
 import { AppError } from "../utils/AppError";
 import { parsePaginationQuery } from "../utils/pagination";
 const createApplication = async (req: Request, res: Response, next:NextFunction) => {
@@ -87,8 +87,23 @@ const updateApplicationStatus = async (req:Request,res:Response,next:NextFunctio
 }
 
 
+const deleteApplication = async (req:Request,res:Response,next:NextFunction)=>{
+    try{
+        const id = Number(req.params.id);
+        const validationResult = deleteApplicationSchema.safeParse({id});
+        if(!validationResult.success){
+            throw new AppError("Invalid application data",400);
+        }
+        const application = await applicationService.deleteApplication(validationResult.data);
+        return res.status(200).json({ success: true, message: "Application deleted successfully", application });
+    }catch(error){
+        next(error);
+    }
+}
+
 export default {
     createApplication,
     getAllApplicationsForJob,
-    updateApplicationStatus
+    updateApplicationStatus,
+    deleteApplication
 }

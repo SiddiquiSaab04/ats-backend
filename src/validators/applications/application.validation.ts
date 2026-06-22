@@ -25,8 +25,13 @@ const updateApplicationSchema = z.object({
     status:z.enum(["PENDING","APPLIED","SHORTLISTED","INTERVIEW","OFFERED","REJECTED"]),
 });
 
+const deleteApplicationSchema = z.object({
+    id: z.coerce.number().min(1, "Application ID is required"),
+});
+
 export {
     createApplicationSchema,
     getAllApplicationsForJobSchema,
-    updateApplicationSchema
+    updateApplicationSchema,
+    deleteApplicationSchema
 }

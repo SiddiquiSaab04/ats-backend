@@ -1,11 +1,12 @@
 import { prisma } from "../prisma/client";
 import supabase from "../config/supabase";
-import { createApplicationSchema , updateApplicationSchema } from "../validators/applications/application.validation"
+import { createApplicationSchema , updateApplicationSchema , deleteApplicationSchema} from "../validators/applications/application.validation"
 import { z } from "zod";
 import { redisClient } from "../redis/client";
 
 type BaseApplicationData = z.infer<typeof createApplicationSchema>;
 type updateApplicationInput = z.infer<typeof updateApplicationSchema>;
+type deleteApplicationInput = z.infer<typeof deleteApplicationSchema>;
 type createApplicationInput = BaseApplicationData & {
     resume: Buffer | File;
 };
@@ -97,18 +98,28 @@ const updateApplicationStatus = async (data:updateApplicationInput) => {
     try {
         const application = await prisma.application.update({
             where: {
-                id:data.id
+                id: data.id
             },
             data: {
                 status:data.status
             }
         })
-        console.log("application updated successfully");
         return application;
     } catch (error) {
-        console.log("error in updating application", error);
         throw error;
     }
 }
 
-export default { createApplication, getAllApplicationsForJob,updateApplicationStatus }
+const deleteApplication = async (data:deleteApplicationInput) => {
+    try {
+        const application = await prisma.application.delete({
+            where: {
+                id: data.id
+            }
+        })
+    } catch (error) {
+        throw error;
+    }
+}
+
+export default { createApplication, getAllApplicationsForJob,updateApplicationStatus,deleteApplication }

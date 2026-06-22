@@ -80,8 +80,23 @@ const updateApplicationStatus = async (req, res, next) => {
         next(error);
     }
 };
+const deleteApplication = async (req, res, next) => {
+    try {
+        const id = Number(req.params.id);
+        const validationResult = application_validation_1.deleteApplicationSchema.safeParse({ id });
+        if (!validationResult.success) {
+            throw new AppError_1.AppError("Invalid application data", 400);
+        }
+        const application = await application_service_1.default.deleteApplication(validationResult.data);
+        return res.status(200).json({ success: true, message: "Application deleted successfully", application });
+    }
+    catch (error) {
+        next(error);
+    }
+};
 exports.default = {
     createApplication,
     getAllApplicationsForJob,
-    updateApplicationStatus
+    updateApplicationStatus,
+    deleteApplication
 };

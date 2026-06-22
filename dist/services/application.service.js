@@ -93,12 +93,22 @@ const updateApplicationStatus = async (data) => {
                 status: data.status
             }
         });
-        console.log("application updated successfully");
         return application;
     }
     catch (error) {
-        console.log("error in updating application", error);
         throw error;
     }
 };
-exports.default = { createApplication, getAllApplicationsForJob, updateApplicationStatus };
+const deleteApplication = async (data) => {
+    try {
+        const application = await client_1.prisma.application.delete({
+            where: {
+                id: data.id
+            }
+        });
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.default = { createApplication, getAllApplicationsForJob, updateApplicationStatus, deleteApplication };

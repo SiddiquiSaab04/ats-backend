@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateApplicationSchema = exports.getAllApplicationsForJobSchema = exports.createApplicationSchema = void 0;
+exports.deleteApplicationSchema = exports.updateApplicationSchema = exports.getAllApplicationsForJobSchema = exports.createApplicationSchema = void 0;
 const zod_1 = require("zod");
 const createApplicationSchema = zod_1.z.object({
     jobId: zod_1.z.coerce.number().min(1, "Job ID is required"),
@@ -27,3 +27,7 @@ const updateApplicationSchema = zod_1.z.object({
     status: zod_1.z.enum(["PENDING", "APPLIED", "SHORTLISTED", "INTERVIEW", "OFFERED", "REJECTED"]),
 });
 exports.updateApplicationSchema = updateApplicationSchema;
+const deleteApplicationSchema = zod_1.z.object({
+    id: zod_1.z.coerce.number().min(1, "Application ID is required"),
+});
+exports.deleteApplicationSchema = deleteApplicationSchema;
