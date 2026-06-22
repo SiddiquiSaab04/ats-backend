@@ -66,7 +66,22 @@ const getAllApplicationsForJob = async (req, res, next) => {
         next(error);
     }
 };
+const updateApplicationStatus = async (req, res, next) => {
+    try {
+        const id = Number(req.params.id);
+        const validationResult = application_validation_1.updateApplicationSchema.safeParse({ ...req.body, id });
+        if (!validationResult.success) {
+            throw new AppError_1.AppError("Invalid application data", 400);
+        }
+        const application = await application_service_1.default.updateApplicationStatus(validationResult.data);
+        return res.status(200).json({ success: true, message: "Application updated successfully", application });
+    }
+    catch (error) {
+        next(error);
+    }
+};
 exports.default = {
     createApplication,
-    getAllApplicationsForJob
+    getAllApplicationsForJob,
+    updateApplicationStatus
 };

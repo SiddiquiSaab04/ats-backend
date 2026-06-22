@@ -7,5 +7,5 @@ const router = Router();
 
 router.post("/", upload.single("resume"), auth.auth, auth.authorizeRole("CANDIDATE"), applicationController.createApplication);
 router.get("/", auth.auth, auth.authorizeRole("CANDIDATE","ADMIN"), applicationController.getAllApplicationsForJob);
-// router.patch("/",auth.auth,auth.authorizeRole("CANDIDATE"),applicationController.updateApplication);
+router.patch("/:id",auth.auth,auth.authorizeRole("CANDIDATE"),applicationController.updateApplicationStatus);
 export default router;

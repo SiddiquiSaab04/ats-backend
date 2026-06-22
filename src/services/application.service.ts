@@ -1,10 +1,11 @@
 import { prisma } from "../prisma/client";
-import { Request, NextFunction, Response } from "express";
 import supabase from "../config/supabase";
-import { createApplicationSchema } from "../validators/applications/application.validation"
+import { createApplicationSchema , updateApplicationSchema } from "../validators/applications/application.validation"
 import { z } from "zod";
-type BaseApplicationData = z.infer<typeof createApplicationSchema>;
+import { redisClient } from "../redis/client";
 
+type BaseApplicationData = z.infer<typeof createApplicationSchema>;
+type updateApplicationInput = z.infer<typeof updateApplicationSchema>;
 type createApplicationInput = BaseApplicationData & {
     resume: Buffer | File;
 };
@@ -42,6 +43,11 @@ const createApplication = async (data: createApplicationInput) => {
 
 const getAllApplicationsForJob = async (candidateId: number, page: number = 1, limit: number = 10) => {
     try {
+        const cacheKey = `applications:${candidateId}:${page}:${limit}`;
+        const cachedApplications = await redisClient.get(cacheKey);
+        if (cachedApplications) {
+            return JSON.parse(cachedApplications);
+        }
         const applicationList = await prisma.application.findMany({
             where: {
                 candidateId: Number(candidateId),
@@ -72,7 +78,9 @@ const getAllApplicationsForJob = async (candidateId: number, page: number = 1, l
                 candidateId: Number(candidateId)
             }
         });
-        console.log("applications fetched successfully");
+        await redisClient.set(cacheKey, JSON.stringify(applicationList), {
+            EX: 60 * 5
+        });
         return {
             data: applicationList,
             page,
@@ -80,9 +88,27 @@ const getAllApplicationsForJob = async (candidateId: number, page: number = 1, l
             totalCount
         };
     } catch (error) {
-        console.log("error in fetching applications", error);
         throw error;
     }
 }
 
-export default { createApplication, getAllApplicationsForJob }
+
+const updateApplicationStatus = async (data:updateApplicationInput) => {
+    try {
+        const application = await prisma.application.update({
+            where: {
+                id:data.id
+            },
+            data: {
+                status:data.status
+            }
+        })
+        console.log("application updated successfully");
+        return application;
+    } catch (error) {
+        console.log("error in updating application", error);
+        throw error;
+    }
+}
+
+export default { createApplication, getAllApplicationsForJob,updateApplicationStatus }
