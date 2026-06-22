@@ -44,7 +44,7 @@ const getAllApplicationsForJob = async (candidateId: number, page: number = 1, l
     try {
         const applicationList = await prisma.application.findMany({
             where: {
-                candidateId: Number(candidateId)
+                candidateId: Number(candidateId),
             },
             include: {
                 job: {

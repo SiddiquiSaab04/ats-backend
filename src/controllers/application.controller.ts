@@ -72,6 +72,8 @@ const getAllApplicationsForJob = async (req: Request, res: Response, next:NextFu
     }
 }
 
+
+
 export default {
     createApplication,
     getAllApplicationsForJob
