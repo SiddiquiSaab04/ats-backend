@@ -16,6 +16,14 @@ const createApplication = async (req: Request, res: Response, next:NextFunction)
             throw new AppError("Resume file is required", 400);
         }
 
+        if (!req.file.mimetype.includes("pdf") && !req.file.mimetype.includes("octet-stream")) {
+            throw new AppError("Invalid file type", 400);
+        }
+
+        if (req.file.size > 2 * 1024 * 1024) {
+            throw new AppError("File size must be less than 2MB", 400);
+        }
+
         const existingJob = await prisma.job.findUnique({
             where: { id: Number(validationResult.data.jobId) }
         });
