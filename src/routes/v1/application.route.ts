@@ -7,6 +7,6 @@ const router = Router();
 
 router.post("/", upload.single("resume"), auth.auth, auth.authorizeRole("CANDIDATE"), applicationController.createApplication);
 router.get("/", auth.auth, auth.authorizeRole("CANDIDATE","ADMIN"), applicationController.getAllApplicationsForJob);
-router.patch("/:id",auth.auth,auth.authorizeRole("CANDIDATE"),applicationController.updateApplicationStatus);
+router.patch("/:id",auth.auth,auth.authorizeRole("RECRUITER","ADMIN"),applicationController.updateApplicationStatus);
 router.delete("/:id",auth.auth,auth.authorizeRole("ADMIN"),applicationController.deleteApplication);
 export default router;

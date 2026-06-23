@@ -10,6 +10,6 @@ const application_controller_1 = __importDefault(require("../../controllers/appl
 const router = (0, express_1.Router)();
 router.post("/", multer_middleware_1.upload.single("resume"), auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("CANDIDATE"), application_controller_1.default.createApplication);
 router.get("/", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("CANDIDATE", "ADMIN"), application_controller_1.default.getAllApplicationsForJob);
-router.patch("/:id", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("CANDIDATE"), application_controller_1.default.updateApplicationStatus);
+router.patch("/:id", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "ADMIN"), application_controller_1.default.updateApplicationStatus);
 router.delete("/:id", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("ADMIN"), application_controller_1.default.deleteApplication);
 exports.default = router;

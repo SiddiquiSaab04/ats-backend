@@ -3,6 +3,7 @@ import supabase from "../config/supabase";
 import { createApplicationSchema , updateApplicationSchema , deleteApplicationSchema} from "../validators/applications/application.validation"
 import { z } from "zod";
 import { redisClient } from "../redis/client";
+import { paginate } from "../utils/pagination";
 
 type BaseApplicationData = z.infer<typeof createApplicationSchema>;
 type updateApplicationInput = z.infer<typeof updateApplicationSchema>;
@@ -49,10 +50,8 @@ const getAllApplicationsForJob = async (candidateId: number, page: number = 1, l
         if (cachedApplications) {
             return JSON.parse(cachedApplications);
         }
-        const applicationList = await prisma.application.findMany({
-            where: {
-                candidateId: Number(candidateId),
-            },
+        const result = await paginate(prisma.application,{page,limit},{
+            where:{candidateId:Number(candidateId)},
             include: {
                 job: {
                     omit: {
@@ -72,21 +71,15 @@ const getAllApplicationsForJob = async (candidateId: number, page: number = 1, l
                     }
                 }
             },
-        })
+        }
+        )
 
-        const totalCount = await prisma.application.count({
-            where: {
-                candidateId: Number(candidateId)
-            }
-        });
-        await redisClient.set(cacheKey, JSON.stringify(applicationList), {
+        await redisClient.set(cacheKey, JSON.stringify(result), {
             EX: 60 * 5
         });
         return {
-            data: applicationList,
-            page,
-            limit,
-            totalCount
+            data: result.data,
+            pagination: result.pagination
         };
     } catch (error) {
         throw error;

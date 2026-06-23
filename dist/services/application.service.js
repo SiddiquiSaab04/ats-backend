@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("../prisma/client");
 const supabase_1 = __importDefault(require("../config/supabase"));
 const client_2 = require("../redis/client");
+const pagination_1 = require("../utils/pagination");
 const createApplication = async (data) => {
     try {
         const uploadResume = await supabase_1.default.storage.from("ATS").upload(`resume_${data.candidateId}_${Date.now()}.pdf`, data.resume, { contentType: "application/pdf" });
@@ -40,10 +41,8 @@ const getAllApplicationsForJob = async (candidateId, page = 1, limit = 10) => {
         if (cachedApplications) {
             return JSON.parse(cachedApplications);
         }
-        const applicationList = await client_1.prisma.application.findMany({
-            where: {
-                candidateId: Number(candidateId),
-            },
+        const result = await (0, pagination_1.paginate)(client_1.prisma.application, { page, limit }, {
+            where: { candidateId: Number(candidateId) },
             include: {
                 job: {
                     omit: {
@@ -64,19 +63,12 @@ const getAllApplicationsForJob = async (candidateId, page = 1, limit = 10) => {
                 }
             },
         });
-        const totalCount = await client_1.prisma.application.count({
-            where: {
-                candidateId: Number(candidateId)
-            }
-        });
-        await client_2.redisClient.set(cacheKey, JSON.stringify(applicationList), {
+        await client_2.redisClient.set(cacheKey, JSON.stringify(result), {
             EX: 60 * 5
         });
         return {
-            data: applicationList,
-            page,
-            limit,
-            totalCount
+            data: result.data,
+            pagination: result.pagination
         };
     }
     catch (error) {
