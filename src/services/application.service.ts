@@ -11,6 +11,7 @@ type deleteApplicationInput = z.infer<typeof deleteApplicationSchema>;
 type createApplicationInput = BaseApplicationData & {
     resume: Buffer | File;
 };
+    let uploadResumePath: string | null;
 
 const createApplication = async (data: createApplicationInput) => {
     try {
@@ -20,6 +21,14 @@ const createApplication = async (data: createApplicationInput) => {
 
         if (uploadResume.error) {
             throw uploadResume.error;
+        }
+
+        uploadResumePath = uploadResume.data.path;
+
+        const cacheKey = `applications:${data.candidateId}:${data.jobId}`;
+        const cachedApplication = await redisClient.get(cacheKey);
+        if (cachedApplication) {
+            return JSON.parse(cachedApplication);
         }
 
         const application = await prisma.application.create({
@@ -36,8 +45,15 @@ const createApplication = async (data: createApplicationInput) => {
             }
         })
         console.log("application created successfully");
+        const cacheKeys = await redisClient.keys(`applications:${data.candidateId}:*`);
+        if (cacheKeys.length > 0) {
+            await redisClient.del(cacheKeys);
+        }
         return application;
     } catch (error) {
+        if(uploadResumePath){
+            await supabase.storage.from("ATS").remove([uploadResumePath]);
+        }
         console.log("error in creating application", error);
         throw error;
     }
@@ -88,6 +104,7 @@ const getAllApplicationsForJob = async (candidateId: number, page: number = 1, l
 
 
 const updateApplicationStatus = async (data:updateApplicationInput) => {
+    const cacheKey = `applications:${data.id}`;
     try {
         const application = await prisma.application.update({
             where: {
@@ -97,6 +114,7 @@ const updateApplicationStatus = async (data:updateApplicationInput) => {
                 status:data.status
             }
         })
+        await redisClient.del(cacheKey);
         return application;
     } catch (error) {
         throw error;
@@ -104,12 +122,15 @@ const updateApplicationStatus = async (data:updateApplicationInput) => {
 }
 
 const deleteApplication = async (data:deleteApplicationInput) => {
+    const cacheKey = `applications:${data.id}`;
     try {
         const application = await prisma.application.delete({
             where: {
                 id: data.id
             }
         })
+        await redisClient.del(cacheKey);
+        return "Application deleted successfully";
     } catch (error) {
         throw error;
     }

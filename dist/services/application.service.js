@@ -7,11 +7,18 @@ const client_1 = require("../prisma/client");
 const supabase_1 = __importDefault(require("../config/supabase"));
 const client_2 = require("../redis/client");
 const pagination_1 = require("../utils/pagination");
+let uploadResumePath;
 const createApplication = async (data) => {
     try {
         const uploadResume = await supabase_1.default.storage.from("ATS").upload(`resume_${data.candidateId}_${Date.now()}.pdf`, data.resume, { contentType: "application/pdf" });
         if (uploadResume.error) {
             throw uploadResume.error;
+        }
+        uploadResumePath = uploadResume.data.path;
+        const cacheKey = `applications:${data.candidateId}:${data.jobId}`;
+        const cachedApplication = await client_2.redisClient.get(cacheKey);
+        if (cachedApplication) {
+            return JSON.parse(cachedApplication);
         }
         const application = await client_1.prisma.application.create({
             data: {
@@ -27,9 +34,16 @@ const createApplication = async (data) => {
             }
         });
         console.log("application created successfully");
+        const cacheKeys = await client_2.redisClient.keys(`applications:${data.candidateId}:*`);
+        if (cacheKeys.length > 0) {
+            await client_2.redisClient.del(cacheKeys);
+        }
         return application;
     }
     catch (error) {
+        if (uploadResumePath) {
+            await supabase_1.default.storage.from("ATS").remove([uploadResumePath]);
+        }
         console.log("error in creating application", error);
         throw error;
     }
@@ -76,6 +90,7 @@ const getAllApplicationsForJob = async (candidateId, page = 1, limit = 10) => {
     }
 };
 const updateApplicationStatus = async (data) => {
+    const cacheKey = `applications:${data.id}`;
     try {
         const application = await client_1.prisma.application.update({
             where: {
@@ -85,6 +100,7 @@ const updateApplicationStatus = async (data) => {
                 status: data.status
             }
         });
+        await client_2.redisClient.del(cacheKey);
         return application;
     }
     catch (error) {
@@ -92,12 +108,15 @@ const updateApplicationStatus = async (data) => {
     }
 };
 const deleteApplication = async (data) => {
+    const cacheKey = `applications:${data.id}`;
     try {
         const application = await client_1.prisma.application.delete({
             where: {
                 id: data.id
             }
         });
+        await client_2.redisClient.del(cacheKey);
+        return "Application deleted successfully";
     }
     catch (error) {
         throw error;
