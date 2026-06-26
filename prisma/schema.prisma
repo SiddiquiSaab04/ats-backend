@@ -28,6 +28,8 @@ enum ApplicationStatus {
   INTERVIEW
   OFFERED
   REJECTED
+  DECLINED
+  ACCEPTED
 }
 
 enum JobType{
