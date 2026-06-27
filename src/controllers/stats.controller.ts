@@ -1,7 +1,7 @@
-import {Request, Response} from "express";
-import statsService from "../services/stats.services"
+import {Request, Response, NextFunction} from "express";
+import statsService from "../services/stats.service"
 import { AppError } from "../utils/AppError";
-const getStatsForCandidate = async (req : Request, res : Response) => {
+const getStatsForCandidate = async (req : Request, res : Response, next:NextFunction) => {
     try {
         const candidateId = Number((req as any).user ?. id);
         if(!candidateId){
@@ -10,11 +10,25 @@ const getStatsForCandidate = async (req : Request, res : Response) => {
         const result = await statsService.getStatsForCandidate(candidateId);
         return res.status(200).json({message: "Stats for candidate fetched successfully", data: result});
     } catch (error) {
-        return res.status(500).json({message: "Failed to fetch stats for candidate", error});
+        next(error);
     }
 }
 
 
+const getStatsForRecruiter = async (req : Request, res : Response, next:NextFunction) => {
+    try {
+        const recruiterId = Number((req as any).user ?. id);
+        if(!recruiterId){
+            throw new AppError("Unauthorized",401);
+        }
+        const result = await statsService.getStatsForRecruiter(recruiterId);
+        return res.status(200).json({message: "Stats for recruiter fetched successfully", data: result});
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
-    getStatsForCandidate
+    getStatsForCandidate,
+    getStatsForRecruiter
 }

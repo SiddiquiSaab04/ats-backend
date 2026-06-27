@@ -17,14 +17,14 @@ const getAllApplicationsForJobSchema = zod_1.z.object({
     email: zod_1.z.string().email("Invalid email").optional(),
     phone: zod_1.z.string().min(1, "Phone number is required").optional(),
     location: zod_1.z.string().min(1, "Location is required").optional(),
-    status: zod_1.z.enum(["PENDING", "APPLIED", "SHORTLISTED", "INTERVIEW", "OFFERED", "REJECTED"]).optional(),
+    status: zod_1.z.enum(["PENDING", "APPLIED", "SHORTLISTED", "INTERVIEW", "OFFERED", "REJECTED", "ACCEPTED", "DECLINED"]).optional(),
     page: zod_1.z.coerce.number().min(1, "Page is required").optional(),
     limit: zod_1.z.coerce.number().min(1, "Limit is required").optional(),
 });
 exports.getAllApplicationsForJobSchema = getAllApplicationsForJobSchema;
 const updateApplicationSchema = zod_1.z.object({
     id: zod_1.z.coerce.number().min(1, "Application ID is required"),
-    status: zod_1.z.enum(["PENDING", "APPLIED", "SHORTLISTED", "INTERVIEW", "OFFERED", "REJECTED"]),
+    status: zod_1.z.enum(["PENDING", "APPLIED", "SHORTLISTED", "INTERVIEW", "OFFERED", "REJECTED", "ACCEPTED", "DECLINED"]),
 });
 exports.updateApplicationSchema = updateApplicationSchema;
 const deleteApplicationSchema = zod_1.z.object({

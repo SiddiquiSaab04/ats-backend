@@ -14,5 +14,5 @@ router.use("/user", user_route_1.default);
 router.use("/auth", auth_route_1.default);
 router.use("/job", job_route_1.default);
 router.use("/application", application_route_1.default);
-router.use("/stats/candidate", stats_route_1.default);
+router.use("/stats", stats_route_1.default);
 exports.default = router;

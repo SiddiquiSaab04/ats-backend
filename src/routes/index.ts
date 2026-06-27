@@ -9,5 +9,5 @@ router.use("/user", userRoute);
 router.use("/auth", authRoute);
 router.use("/job", jobRoute);
 router.use("/application", applicationRoute);
-router.use("/stats/candidate", statsRoute);
+router.use("/stats", statsRoute);
 export default router;
