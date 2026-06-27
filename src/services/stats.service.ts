@@ -53,7 +53,7 @@ const getStatsForRecruiter = async (recruiterId: number) => {
             where:{
                 NOT: {
                     status: {
-                        in: ["DECLINED", "APPLIED"]
+                        in: ["DECLINED", "APPLIED","PENDING","ACCEPTED","SHORTLISTED"]
                     }
                 },
                 job: {
@@ -79,12 +79,9 @@ const getStatsForRecruiter = async (recruiterId: number) => {
     });
 
     const formattedApplications = {
-        SHORTLISTED: 0,
         REJECTED: 0,
         INTERVIEW: 0,
         OFFERED: 0,
-        ACCEPTED: 0,
-        DECLINED: 0,
     };
 
     totalApplications.forEach(stat => {
