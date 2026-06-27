@@ -1,4 +1,5 @@
 import { prisma } from "../prisma/client";
+import { AppError } from "../utils/AppError";
 
 const getStatsForCandidate = async (candidateId: number) => {
     try {
@@ -31,9 +32,11 @@ const getStatsForCandidate = async (candidateId: number) => {
 
         return formattedStats;
     } catch (error) {
-        throw error;
+        throw new AppError("Failed to fetch stats for candidate", 500);
     }
 }
+
+
 
 
 export default {

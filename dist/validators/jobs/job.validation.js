@@ -13,6 +13,7 @@ const createJobSchema = zod_1.z.object({
     jobType: zod_1.z.enum(["FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP", "REMOTE", "HYBRID", "ON_SITE"]),
     skills: zod_1.z.array(zod_1.z.number()).optional(),
     validTill: zod_1.z.coerce.date(),
+    status: zod_1.z.enum(["OPEN", "CLOSED", "EXPIRED"]),
 });
 exports.createJobSchema = createJobSchema;
 const updateJobSchema = zod_1.z.object({
@@ -26,6 +27,7 @@ const updateJobSchema = zod_1.z.object({
     jobType: zod_1.z.enum(["FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP", "REMOTE", "HYBRID", "ON_SITE"]).optional(),
     skills: zod_1.z.array(zod_1.z.number()).optional(),
     validTill: zod_1.z.coerce.date().optional(),
+    status: zod_1.z.enum(["OPEN", "CLOSED", "EXPIRED"]).optional(),
 });
 exports.updateJobSchema = updateJobSchema;
 const getJobByIdSchema = zod_1.z.object({
@@ -45,6 +47,7 @@ const getAllJobsSchema = zod_1.z.object({
     jobType: zod_1.z.enum(["FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP", "REMOTE", "HYBRID", "ON_SITE"]).optional(),
     skills: zod_1.z.array(zod_1.z.number()).optional(),
     validTill: zod_1.z.coerce.date().optional(),
+    status: zod_1.z.enum(["OPEN", "CLOSED", "EXPIRED"]).optional(),
 });
 exports.getAllJobsSchema = getAllJobsSchema;
 const deleteJobSchema = zod_1.z.object({

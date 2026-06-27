@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("../prisma/client");
+const AppError_1 = require("../utils/AppError");
 const getStatsForCandidate = async (candidateId) => {
     try {
         const stats = await client_1.prisma.application.groupBy({
@@ -30,7 +31,7 @@ const getStatsForCandidate = async (candidateId) => {
         return formattedStats;
     }
     catch (error) {
-        throw error;
+        throw new AppError_1.AppError("Failed to fetch stats for candidate", 500);
     }
 };
 exports.default = {

@@ -16,6 +16,7 @@ const createJob = async (jobData, userId) => {
             jobType: jobData.jobType,
             createdBy: Number(userId),
             validTill: jobData.validTill,
+            status: jobData.status,
         }
     });
     if (jobData.skills && jobData.skills.length > 0) {
