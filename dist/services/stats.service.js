@@ -13,7 +13,13 @@ const getStatsForCandidate = async (candidateId) => {
                 status: true
             }
         });
+        const totalApplications = await client_1.prisma.application.count({
+            where: {
+                candidateId: candidateId
+            }
+        });
         const formattedStats = {
+            TOTAL_APPLICATIONS: totalApplications,
             APPLIED: 0,
             SHORTLISTED: 0,
             REJECTED: 0,
@@ -36,7 +42,12 @@ const getStatsForCandidate = async (candidateId) => {
 };
 const getStatsForRecruiter = async (recruiterId) => {
     try {
-        const totalJobsPosted = await client_1.prisma.job.groupBy({
+        const totalJobs = await client_1.prisma.job.count({
+            where: {
+                createdBy: recruiterId
+            }
+        });
+        const jobsStats = await client_1.prisma.job.groupBy({
             by: ["status"],
             where: {
                 createdBy: recruiterId
@@ -66,7 +77,7 @@ const getStatsForRecruiter = async (recruiterId) => {
             CLOSED: 0,
             EXPIRED: 0,
         };
-        totalJobsPosted.forEach(stat => {
+        jobsStats.forEach(stat => {
             const statusKey = stat.status;
             if (statusKey in formattedStats) {
                 formattedStats[statusKey] = stat._count.status;
@@ -84,6 +95,7 @@ const getStatsForRecruiter = async (recruiterId) => {
             }
         });
         return {
+            totalJobs: totalJobs,
             totalJobsPosted: formattedStats,
             totalApplications: formattedApplications
         };
@@ -92,7 +104,7 @@ const getStatsForRecruiter = async (recruiterId) => {
         throw new AppError_1.AppError("Failed to fetch stats for recruiter", 500);
     }
 };
-const getStatsForAdmin = async (adminId) => {
+const getStatsForAdmin = async () => {
     try {
         const totalJobs = await client_1.prisma.job.count();
         const totalApplications = await client_1.prisma.application.count();
@@ -104,12 +116,16 @@ const getStatsForAdmin = async (adminId) => {
         const totalCompanies = await client_1.prisma.company.count();
         const totalUsers = await client_1.prisma.user.groupBy({
             by: ["role"],
+            where: {
+                role: {
+                    notIn: ["ADMIN"]
+                }
+            },
             _count: {
                 role: true
             }
         });
         const formattedStats = {
-            ADMIN: 0,
             CANDIDATE: 0,
             RECRUITER: 0,
         };

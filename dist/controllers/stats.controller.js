@@ -37,7 +37,7 @@ const getStatsForAdmin = async (req, res, next) => {
         if (!adminId) {
             throw new AppError_1.AppError("Unauthorized", 401);
         }
-        const result = await stats_service_1.default.getStatsForAdmin(adminId);
+        const result = await stats_service_1.default.getStatsForAdmin();
         return res.status(200).json({ message: "Stats for admin fetched successfully", data: result });
     }
     catch (error) {

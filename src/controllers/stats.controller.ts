@@ -1,6 +1,7 @@
 import {Request, Response, NextFunction} from "express";
 import statsService from "../services/stats.service"
 import { AppError } from "../utils/AppError";
+
 const getStatsForCandidate = async (req : Request, res : Response, next:NextFunction) => {
     try {
         const candidateId = Number((req as any).user ?. id);
@@ -34,7 +35,7 @@ const getStatsForAdmin = async (req : Request, res : Response, next:NextFunction
         if(!adminId){
             throw new AppError("Unauthorized",401);
         }
-        const result = await statsService.getStatsForAdmin(adminId);
+        const result = await statsService.getStatsForAdmin();
         return res.status(200).json({message: "Stats for admin fetched successfully", data: result});
     } catch (error) {
         next(error);

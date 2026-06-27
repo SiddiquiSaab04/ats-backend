@@ -13,7 +13,14 @@ const getStatsForCandidate = async (candidateId: number) => {
             }
         });
 
+        const totalApplications = await prisma.application.count({
+            where: {
+                candidateId: candidateId
+            }
+        });
+
         const formattedStats = {
+            TOTAL_APPLICATIONS: totalApplications,
             APPLIED: 0,
             SHORTLISTED: 0,
             REJECTED: 0,
@@ -38,7 +45,14 @@ const getStatsForCandidate = async (candidateId: number) => {
 
 const getStatsForRecruiter = async (recruiterId: number) => {
     try {
-        const totalJobsPosted = await prisma.job.groupBy({
+
+        const totalJobs = await prisma.job.count({
+            where: {
+                createdBy: recruiterId
+            }
+        });
+
+        const jobsStats = await prisma.job.groupBy({
             by: ["status"],
             where: {
                 createdBy: recruiterId
@@ -71,7 +85,7 @@ const getStatsForRecruiter = async (recruiterId: number) => {
         EXPIRED: 0,
     };
 
-    totalJobsPosted.forEach(stat => {
+    jobsStats.forEach(stat => {
         const statusKey = stat.status as keyof typeof formattedStats;
         if(statusKey in formattedStats){
             formattedStats[statusKey] = stat._count.status;
@@ -92,6 +106,7 @@ const getStatsForRecruiter = async (recruiterId: number) => {
     });
 
     return {
+        totalJobs: totalJobs,
         totalJobsPosted: formattedStats,
         totalApplications: formattedApplications
     }
@@ -100,7 +115,7 @@ const getStatsForRecruiter = async (recruiterId: number) => {
     }
 }
 
-const getStatsForAdmin = async (adminId: number) => {
+const getStatsForAdmin = async () => {
     try {
         const totalJobs = await prisma.job.count();
         const totalApplications = await prisma.application.count();
@@ -112,13 +127,17 @@ const getStatsForAdmin = async (adminId: number) => {
         const totalCompanies = await prisma.company.count();
         const totalUsers = await prisma.user.groupBy({
             by:["role"],
+            where:{
+                role:{
+                    notIn:["ADMIN"]
+                }
+            },
             _count:{
                 role:true
             }
         });
 
         const formattedStats = {
-            ADMIN: 0,
             CANDIDATE: 0,
             RECRUITER: 0,
         };
