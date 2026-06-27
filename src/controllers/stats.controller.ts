@@ -28,7 +28,21 @@ const getStatsForRecruiter = async (req : Request, res : Response, next:NextFunc
     }
 }
 
+const getStatsForAdmin = async (req : Request, res : Response, next:NextFunction) => {
+    try {
+        const adminId = Number((req as any).user ?. id);
+        if(!adminId){
+            throw new AppError("Unauthorized",401);
+        }
+        const result = await statsService.getStatsForAdmin(adminId);
+        return res.status(200).json({message: "Stats for admin fetched successfully", data: result});
+    } catch (error) {
+        next(error);
+    }
+}
+
 export default {
     getStatsForCandidate,
-    getStatsForRecruiter
+    getStatsForRecruiter,
+    getStatsForAdmin
 }

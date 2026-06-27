@@ -100,9 +100,51 @@ const getStatsForRecruiter = async (recruiterId: number) => {
     }
 }
 
+const getStatsForAdmin = async (adminId: number) => {
+    try {
+        const totalJobs = await prisma.job.count();
+        const totalApplications = await prisma.application.count();
+        const totalHired = await prisma.application.count({
+            where:{
+                status: "OFFERED"
+            }
+        });
+        const totalCompanies = await prisma.company.count();
+        const totalUsers = await prisma.user.groupBy({
+            by:["role"],
+            _count:{
+                role:true
+            }
+        });
+
+        const formattedStats = {
+            ADMIN: 0,
+            CANDIDATE: 0,
+            RECRUITER: 0,
+        };
+
+        totalUsers.forEach(stat => {
+            const roleKey = stat.role as keyof typeof formattedStats;
+            if(roleKey in formattedStats){
+                formattedStats[roleKey] = stat._count.role;
+            }
+        });
+
+        return {
+            totalJobs,
+            totalApplications,
+            totalCompanies,
+            totalHired,
+            totalUsers: formattedStats
+        }
+    } catch (error) {
+        throw new AppError("Failed to fetch stats for admin", 500);
+    }
+}
 
 
 export default {
     getStatsForCandidate,
-    getStatsForRecruiter
+    getStatsForRecruiter,
+    getStatsForAdmin
 }

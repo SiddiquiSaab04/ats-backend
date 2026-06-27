@@ -50,7 +50,7 @@ const getStatsForRecruiter = async (recruiterId) => {
             where: {
                 NOT: {
                     status: {
-                        in: ["DECLINED", "APPLIED"]
+                        in: ["DECLINED", "APPLIED", "PENDING", "ACCEPTED", "SHORTLISTED"]
                     }
                 },
                 job: {
@@ -73,12 +73,9 @@ const getStatsForRecruiter = async (recruiterId) => {
             }
         });
         const formattedApplications = {
-            SHORTLISTED: 0,
             REJECTED: 0,
             INTERVIEW: 0,
             OFFERED: 0,
-            ACCEPTED: 0,
-            DECLINED: 0,
         };
         totalApplications.forEach(stat => {
             const statusKey = stat.status;
@@ -95,7 +92,47 @@ const getStatsForRecruiter = async (recruiterId) => {
         throw new AppError_1.AppError("Failed to fetch stats for recruiter", 500);
     }
 };
+const getStatsForAdmin = async (adminId) => {
+    try {
+        const totalJobs = await client_1.prisma.job.count();
+        const totalApplications = await client_1.prisma.application.count();
+        const totalHired = await client_1.prisma.application.count({
+            where: {
+                status: "OFFERED"
+            }
+        });
+        const totalCompanies = await client_1.prisma.company.count();
+        const totalUsers = await client_1.prisma.user.groupBy({
+            by: ["role"],
+            _count: {
+                role: true
+            }
+        });
+        const formattedStats = {
+            ADMIN: 0,
+            CANDIDATE: 0,
+            RECRUITER: 0,
+        };
+        totalUsers.forEach(stat => {
+            const roleKey = stat.role;
+            if (roleKey in formattedStats) {
+                formattedStats[roleKey] = stat._count.role;
+            }
+        });
+        return {
+            totalJobs,
+            totalApplications,
+            totalCompanies,
+            totalHired,
+            totalUsers: formattedStats
+        };
+    }
+    catch (error) {
+        throw new AppError_1.AppError("Failed to fetch stats for admin", 500);
+    }
+};
 exports.default = {
     getStatsForCandidate,
-    getStatsForRecruiter
+    getStatsForRecruiter,
+    getStatsForAdmin
 };
