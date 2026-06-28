@@ -20,7 +20,11 @@ const getAnalyticsForCandidate = async(req:Request , res:Response , next:NextFun
 
 const getAnalyticsForRecruiter = async(req:Request , res:Response , next:NextFunction) => {
     try {
-        const analytics = await analyticsService.getAnalyticsForRecruiter(req);
+        const {id , role} = (req as any).user;
+        if(role !== "RECRUITER"){
+            throw new AppError("Unauthorized", 401);
+        }
+        const analytics = await analyticsService.getAnalyticsForRecruiter(id);
         res.status(200).json({
             success: true,
             data: analytics

@@ -1,7 +1,23 @@
-import { prisma } from "../prisma/client";
+import {prisma} from "../prisma/client";
 import moment from "moment";
 
-const getAnalyticsForCandidate = async (id: number) => {
+
+const allMonths = [
+            'Jan',
+            'Feb',
+            'Mar',
+            'Apr',
+            'May',
+            'Jun',
+            'Jul',
+            'Aug',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dec'
+        ];
+
+const getAnalyticsForCandidate = async (id : number) => {
     try {
         const rawAnalytics = await prisma.$queryRaw<any[]> `
         SELECT
@@ -22,8 +38,7 @@ const getAnalyticsForCandidate = async (id: number) => {
 
         const currentMonthIndex = moment().month();
         const currentYearStr = moment().format('YYYY');
-        const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
+
         const finalAnalytics = allMonths.slice(0, currentMonthIndex + 1).map(m => {
             const monthStr = `${m} ${currentYearStr}`;
             const found = analytics.find(a => a.month === monthStr);
@@ -42,15 +57,15 @@ const getAnalyticsForCandidate = async (id: number) => {
 
         const totalApplicants = await prisma.application.count({
             where: {
-                candidateId: id,
+                candidateId: id
             }
         })
-        
+
         const successRate = totalApplicants === 0 ? 0 : (offeredApplicants / totalApplicants) * 100;
 
         const recentActivity = await prisma.application.findMany({
             where: {
-                candidateId: id,
+                candidateId: id
             },
             include: {
                 job: {
@@ -77,27 +92,52 @@ const getAnalyticsForCandidate = async (id: number) => {
             status: activity.status
         }))
 
-        return {
-            totalApplications: finalAnalytics,
-            offeredApplicants,
-            successRate,
-            recentActivity: formattedRecentActivities
-        }
+        return {totalApplications: finalAnalytics, offeredApplicants, successRate, recentActivity: formattedRecentActivities}
     } catch (error) {
         throw error;
     }
 }
 
-const getAnalyticsForRecruiter = async (req: any) => {
+const getAnalyticsForRecruiter = async (id : number) => {
+    try {
+        const rawAnalytics = await prisma.$queryRaw<any[]> `
+            SELECT
+            DATE_FORMAT(a.appliedAt, '%b %Y') AS month,
+            COUNT(*) AS total
+            FROM Application a
+            JOIN Job j ON a.jobId = j.id
+            WHERE j.createdBy = ${id}
+            AND a.appliedAt >= DATE_FORMAT(NOW(), '%Y-01-01 00:00:00')
+            AND a.appliedAt <= NOW()
+            GROUP BY DATE_FORMAT(a.appliedAt, '%Y-%m'), DATE_FORMAT(a.appliedAt, '%b %Y')
+            ORDER BY DATE_FORMAT(a.appliedAt, '%Y-%m');
+        `;
+
+        const analytics = rawAnalytics.map(row => ({
+            month: row.month,
+            total: Number(row.total)
+        }));
+
+        const currentMonthIndex = moment().month();
+        const currentYearStr = moment().format('YYYY');
+
+        const finalAnalytics = allMonths.slice(0, currentMonthIndex + 1).map(m => {
+            const monthStr = `${m} ${currentYearStr}`;
+            const found = analytics.find(a => a.month === monthStr);
+            return {
+                month: monthStr,
+                total: found ? found.total : 0
+            };
+        });
+
+        return {totalApplicationsReceived: finalAnalytics};
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getAnalyticsForAdmin = async (req : any) => {
     return {};
 }
 
-const getAnalyticsForAdmin = async (req: any) => {
-    return {};
-}
-
-export default {
-    getAnalyticsForCandidate,
-    getAnalyticsForRecruiter,
-    getAnalyticsForAdmin
-}
+export default {getAnalyticsForCandidate, getAnalyticsForRecruiter, getAnalyticsForAdmin}
