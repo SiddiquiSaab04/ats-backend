@@ -5,6 +5,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = require("../prisma/client");
 const moment_1 = __importDefault(require("moment"));
+const allMonths = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec'
+];
 const getAnalyticsForCandidate = async (id) => {
     try {
         const rawAnalytics = await client_1.prisma.$queryRaw `
@@ -24,7 +38,6 @@ const getAnalyticsForCandidate = async (id) => {
         }));
         const currentMonthIndex = (0, moment_1.default)().month();
         const currentYearStr = (0, moment_1.default)().format('YYYY');
-        const allMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         const finalAnalytics = allMonths.slice(0, currentMonthIndex + 1).map(m => {
             const monthStr = `${m} ${currentYearStr}`;
             const found = analytics.find(a => a.month === monthStr);
@@ -41,13 +54,13 @@ const getAnalyticsForCandidate = async (id) => {
         });
         const totalApplicants = await client_1.prisma.application.count({
             where: {
-                candidateId: id,
+                candidateId: id
             }
         });
         const successRate = totalApplicants === 0 ? 0 : (offeredApplicants / totalApplicants) * 100;
         const recentActivity = await client_1.prisma.application.findMany({
             where: {
-                candidateId: id,
+                candidateId: id
             },
             include: {
                 job: {
@@ -72,25 +85,72 @@ const getAnalyticsForCandidate = async (id) => {
             appliedAt: (0, moment_1.default)(activity.appliedAt).format('DD MMM YYYY'),
             status: activity.status
         }));
-        return {
-            totalApplications: finalAnalytics,
-            offeredApplicants,
-            successRate,
-            recentActivity: formattedRecentActivities
-        };
+        return { totalApplications: finalAnalytics, offeredApplicants, successRate, recentActivity: formattedRecentActivities };
     }
     catch (error) {
         throw error;
     }
 };
-const getAnalyticsForRecruiter = async (req) => {
-    return {};
+const getAnalyticsForRecruiter = async (id) => {
+    try {
+        const rawAnalytics = await client_1.prisma.$queryRaw `
+            SELECT
+            DATE_FORMAT(a.appliedAt, '%b %Y') AS month,
+            COUNT(*) AS total
+            FROM Application a
+            JOIN Job j ON a.jobId = j.id
+            WHERE j.createdBy = ${id}
+            AND a.appliedAt >= DATE_FORMAT(NOW(), '%Y-01-01 00:00:00')
+            AND a.appliedAt <= NOW()
+            GROUP BY DATE_FORMAT(a.appliedAt, '%Y-%m'), DATE_FORMAT(a.appliedAt, '%b %Y')
+            ORDER BY DATE_FORMAT(a.appliedAt, '%Y-%m');
+        `;
+        const analytics = rawAnalytics.map(row => ({
+            month: row.month,
+            total: Number(row.total)
+        }));
+        const currentMonthIndex = (0, moment_1.default)().month();
+        const currentYearStr = (0, moment_1.default)().format('YYYY');
+        const finalAnalytics = allMonths.slice(0, currentMonthIndex + 1).map(m => {
+            const monthStr = `${m} ${currentYearStr}`;
+            const found = analytics.find(a => a.month === monthStr);
+            return {
+                month: monthStr,
+                total: found ? found.total : 0
+            };
+        });
+        const rawPostedJobs = await client_1.prisma.$queryRaw `
+        SELECT
+        DATE_FORMAT(createdAt, '%b %Y') AS month,
+        COUNT(*) AS total
+        FROM Job
+        WHERE createdBy = ${id}
+        AND createdAt >= DATE_FORMAT(NOW(), '%Y-01-01 00:00:00')
+        AND createdAt <= NOW()
+        GROUP BY DATE_FORMAT(createdAt, '%Y-%m'), DATE_FORMAT(createdAt, '%b %Y')
+        ORDER BY DATE_FORMAT(createdAt, '%Y-%m');
+        `;
+        const postedJobsAnalytics = rawPostedJobs.map(row => ({
+            month: row.month,
+            total: Number(row.total)
+        }));
+        const finalPostedJobsAnalytics = allMonths.slice(0, currentMonthIndex + 1).map(m => {
+            const monthStr = `${m} ${currentYearStr}`;
+            const found = postedJobsAnalytics.find(a => a.month === monthStr);
+            return {
+                month: monthStr,
+                total: found ? found.total : 0
+            };
+        });
+        const totalJobsPosted = finalPostedJobsAnalytics.reduce((acc, curr) => acc + curr.total, 0);
+        const totalApplicationsReceived = finalAnalytics.reduce((acc, curr) => acc + curr.total, 0);
+        return { totalApplicationsReceived, totalJobsPosted };
+    }
+    catch (error) {
+        throw error;
+    }
 };
 const getAnalyticsForAdmin = async (req) => {
     return {};
 };
-exports.default = {
-    getAnalyticsForCandidate,
-    getAnalyticsForRecruiter,
-    getAnalyticsForAdmin
-};
+exports.default = { getAnalyticsForCandidate, getAnalyticsForRecruiter, getAnalyticsForAdmin };

@@ -130,7 +130,38 @@ const getAnalyticsForRecruiter = async (id : number) => {
             };
         });
 
-        return {totalApplicationsReceived: finalAnalytics};
+        const rawPostedJobs = await prisma.$queryRaw<any[]> `
+        SELECT
+        DATE_FORMAT(createdAt, '%b %Y') AS month,
+        COUNT(*) AS total
+        FROM Job
+        WHERE createdBy = ${id}
+        AND createdAt >= DATE_FORMAT(NOW(), '%Y-01-01 00:00:00')
+        AND createdAt <= NOW()
+        GROUP BY DATE_FORMAT(createdAt, '%Y-%m'), DATE_FORMAT(createdAt, '%b %Y')
+        ORDER BY DATE_FORMAT(createdAt, '%Y-%m');
+        `;
+
+        const postedJobsAnalytics = rawPostedJobs.map(row => ({
+            month: row.month,
+            total: Number(row.total)
+        }));
+
+        const finalPostedJobsAnalytics = allMonths.slice(0, currentMonthIndex + 1).map(m => {
+            const monthStr = `${m} ${currentYearStr}`;
+            const found = postedJobsAnalytics.find(a => a.month === monthStr);
+            return {
+                month: monthStr,
+                total: found ? found.total : 0
+            };
+        });
+
+       
+
+        return {
+            applicationsReceivedPerMonth: finalAnalytics,
+            jobsPostedPerMonth: finalPostedJobsAnalytics
+        };
     } catch (error) {
         throw error;
     }

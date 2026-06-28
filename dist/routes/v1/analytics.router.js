@@ -8,6 +8,6 @@ const auth_middleware_1 = __importDefault(require("../../middlewares/auth.middle
 const analytics_controller_1 = __importDefault(require("../../controllers/analytics.controller"));
 const router = (0, express_1.Router)();
 router.get("/candidate", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("CANDIDATE"), analytics_controller_1.default.getAnalyticsForCandidate);
-// router.get("/recruiter",auth.auth,auth.authorizeRole("RECRUITER"),analyticsController.getStatsForRecruiter);
-// router.get("/admin",auth.auth,auth.authorizeRole("ADMIN"),analyticsController.getStatsForAdmin);
+router.get("/recruiter", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER"), analytics_controller_1.default.getAnalyticsForRecruiter);
+router.get("/admin", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("ADMIN"), analytics_controller_1.default.getAnalyticsForAdmin);
 exports.default = router;
