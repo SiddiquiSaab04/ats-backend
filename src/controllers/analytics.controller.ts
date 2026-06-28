@@ -14,7 +14,7 @@ const getAnalyticsForCandidate = async(req:Request , res:Response , next:NextFun
             data: analytics
         })
     } catch (error : any) {
-        throw new AppError(error.message , 400)
+        throw new AppError("Something went wrong" , 500)
     }
 }
 
@@ -29,8 +29,8 @@ const getAnalyticsForRecruiter = async(req:Request , res:Response , next:NextFun
             success: true,
             data: analytics
         })
-    } catch (error) {
-        
+    } catch (error : any) {
+        throw new AppError(error.message , 500)
     }
 }
 
@@ -41,8 +41,8 @@ const getAnalyticsForAdmin = async(req:Request , res:Response , next:NextFunctio
             success: true,
             data: analytics
         })
-    } catch (error) {
-        
+    } catch (error : any) {
+        throw new AppError(error.message , 500)
     }
 }
 
