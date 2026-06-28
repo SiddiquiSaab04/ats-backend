@@ -156,11 +156,46 @@ const getAnalyticsForRecruiter = async (id : number) => {
             };
         });
 
-       
+        const mostPopularJobRaw = await prisma.job.findFirst({
+            where: { createdBy: id },
+            orderBy: {
+                applications: {
+                    _count: 'desc'
+                }
+            },
+            select: {
+                title: true,
+                _count: {
+                    select: { applications: true }
+                }
+            }
+        });
+
+        const mostPopularJob = mostPopularJobRaw ? {
+            title: mostPopularJobRaw.title,
+            applications: mostPopularJobRaw._count.applications
+        } : null;
+
+        const totalApplicationsForRecruiter = await prisma.application.count({
+            where: {
+                job: { createdBy: id }
+            }
+        });
+
+        const offeredApplicationsForRecruiter = await prisma.application.count({
+            where: {
+                job: { createdBy: id },
+                status: "OFFERED"
+            }
+        });
+
+        const hiringRate = totalApplicationsForRecruiter === 0 ? 0 : (offeredApplicationsForRecruiter / totalApplicationsForRecruiter) * 100;
 
         return {
             applicationsReceivedPerMonth: finalAnalytics,
-            jobsPostedPerMonth: finalPostedJobsAnalytics
+            jobsPostedPerMonth: finalPostedJobsAnalytics,
+            mostPopularJob,
+            hiringRate
         };
     } catch (error) {
         throw error;
@@ -168,7 +203,9 @@ const getAnalyticsForRecruiter = async (id : number) => {
 }
 
 const getAnalyticsForAdmin = async (req : any) => {
-    return {};
+    return {
+        
+    };
 }
 
 export default {getAnalyticsForCandidate, getAnalyticsForRecruiter, getAnalyticsForAdmin}
