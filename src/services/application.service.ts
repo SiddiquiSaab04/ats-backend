@@ -15,6 +15,12 @@ type createApplicationInput = BaseApplicationData & {
 
 const createApplication = async (data: createApplicationInput) => {
     try {
+        const cacheKey = `applications:${data.candidateId}:${data.jobId}`;
+        const cachedApplication = await redisClient.get(cacheKey);
+        if (cachedApplication) {
+            return JSON.parse(cachedApplication);
+        }
+
         const uploadResume = await supabase.storage.from("ATS").upload(`resume_${data.candidateId
             }_${Date.now()
             }.pdf`, data.resume, { contentType: "application/pdf" });
@@ -24,12 +30,6 @@ const createApplication = async (data: createApplicationInput) => {
         }
 
         uploadResumePath = uploadResume.data.path;
-
-        const cacheKey = `applications:${data.candidateId}:${data.jobId}`;
-        const cachedApplication = await redisClient.get(cacheKey);
-        if (cachedApplication) {
-            return JSON.parse(cachedApplication);
-        }
 
         const application = await prisma.application.create({
             data: {
