@@ -18,7 +18,7 @@ const getAnalyticsForCandidate = async (req, res, next) => {
         });
     }
     catch (error) {
-        throw new AppError_1.AppError(error.message, 400);
+        throw new AppError_1.AppError("Something went wrong", 500);
     }
 };
 const getAnalyticsForRecruiter = async (req, res, next) => {
@@ -34,6 +34,7 @@ const getAnalyticsForRecruiter = async (req, res, next) => {
         });
     }
     catch (error) {
+        throw new AppError_1.AppError(error.message, 500);
     }
 };
 const getAnalyticsForAdmin = async (req, res, next) => {
@@ -45,6 +46,7 @@ const getAnalyticsForAdmin = async (req, res, next) => {
         });
     }
     catch (error) {
+        throw new AppError_1.AppError(error.message, 500);
     }
 };
 exports.default = {

@@ -13,7 +13,7 @@ const createJobSchema = zod_1.z.object({
     jobType: zod_1.z.enum(["FULL_TIME", "PART_TIME", "CONTRACT", "INTERNSHIP", "REMOTE", "HYBRID", "ON_SITE"]),
     skills: zod_1.z.array(zod_1.z.number()).optional(),
     validTill: zod_1.z.coerce.date(),
-    status: zod_1.z.enum(["OPEN", "CLOSED", "EXPIRED"]),
+    status: zod_1.z.enum(["OPEN", "CLOSED", "EXPIRED"]).optional().default("OPEN"),
 });
 exports.createJobSchema = createJobSchema;
 const updateJobSchema = zod_1.z.object({

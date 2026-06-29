@@ -11,7 +11,7 @@ const createJobSchema = z.object({
     jobType: z.enum(["FULL_TIME","PART_TIME","CONTRACT","INTERNSHIP","REMOTE","HYBRID","ON_SITE"]),
     skills: z.array(z.number()).optional(),
     validTill: z.coerce.date(),
-    status: z.enum(["OPEN","CLOSED","EXPIRED"]),
+    status: z.enum(["OPEN","CLOSED","EXPIRED"]).optional().default("OPEN"),
 });
 
 
