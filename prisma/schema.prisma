@@ -120,4 +120,20 @@ model Application{
   updatedAt DateTime @updatedAt
   candidate User @relation(fields: [candidateId], references: [id], onDelete: Cascade)
   job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  resumeAnalysis ResumeAnalysis?
+}
+
+
+model ResumeAnalysis {
+  id                Int      @id @default(autoincrement())
+  applicationId     Int      @unique
+  atsScore          Int
+  matchingSkills    Json
+  missingSkills     Json
+  strengths         Json
+  weaknesses        Json
+  summary           String   @db.Text
+  createdAt         DateTime @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }

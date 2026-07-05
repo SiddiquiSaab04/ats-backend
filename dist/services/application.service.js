@@ -10,16 +10,16 @@ const pagination_1 = require("../utils/pagination");
 let uploadResumePath;
 const createApplication = async (data) => {
     try {
-        const uploadResume = await supabase_1.default.storage.from("ATS").upload(`resume_${data.candidateId}_${Date.now()}.pdf`, data.resume, { contentType: "application/pdf" });
-        if (uploadResume.error) {
-            throw uploadResume.error;
-        }
-        uploadResumePath = uploadResume.data.path;
         const cacheKey = `applications:${data.candidateId}:${data.jobId}`;
         const cachedApplication = await client_2.redisClient.get(cacheKey);
         if (cachedApplication) {
             return JSON.parse(cachedApplication);
         }
+        const uploadResume = await supabase_1.default.storage.from("ATS").upload(`resume_${data.candidateId}_${Date.now()}.pdf`, data.resume, { contentType: "application/pdf" });
+        if (uploadResume.error) {
+            throw uploadResume.error;
+        }
+        uploadResumePath = uploadResume.data.path;
         const application = await client_1.prisma.application.create({
             data: {
                 candidateId: Number(data.candidateId),
