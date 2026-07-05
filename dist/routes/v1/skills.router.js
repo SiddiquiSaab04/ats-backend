@@ -8,4 +8,7 @@ const auth_middleware_1 = __importDefault(require("../../middlewares/auth.middle
 const skills_controller_1 = require("../../controllers/skills.controller");
 const router = (0, express_1.Router)();
 router.post("/", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "CANDIDATE"), skills_controller_1.createSkillsController);
+router.get("/", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "CANDIDATE"), skills_controller_1.getAllSkillsController);
+router.patch("/:id", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "CANDIDATE"), skills_controller_1.updateSkillsController);
+router.delete("/:id", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "CANDIDATE"), skills_controller_1.deleteSkillsController);
 exports.default = router;

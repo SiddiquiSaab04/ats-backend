@@ -2,6 +2,7 @@ import { Request , Response , NextFunction } from "express";
 import {createSkillsService , getSkillsService , updateSkillsService , deleteSkillsService } from "../services/skills.service";
 import {prisma} from "../prisma/client";
 import { AppError } from "../utils/AppError";
+import { parsePaginationQuery } from "../utils/pagination";
 
 const createSkillsController = async (req:Request, res:Response, next:NextFunction) => {
     const {name} = req.body;
@@ -33,11 +34,12 @@ const createSkillsController = async (req:Request, res:Response, next:NextFuncti
 
 const getAllSkillsController = async (req:Request, res:Response, next:NextFunction) => {
     try {
-        const skills = await getSkillsService();
+        const { page, limit, search } = parsePaginationQuery(req);
+        const result = await getSkillsService(page, limit, search);
         return res.status(200).json({
             success: true,
             message: "Skills fetched successfully",
-            data: skills
+            ...result
         });
     } catch (error) {
         next(error);
