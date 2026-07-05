@@ -5,12 +5,14 @@ const skills_service_1 = require("../services/skills.service");
 const client_1 = require("../prisma/client");
 const AppError_1 = require("../utils/AppError");
 const pagination_1 = require("../utils/pagination");
+const skills_validation_1 = require("../validators/skills/skills.validation");
 const createSkillsController = async (req, res, next) => {
-    const { name } = req.body;
     try {
-        if (!name) {
-            throw new AppError_1.AppError("Skills name is required", 400);
+        const validationResult = skills_validation_1.createSkillSchema.safeParse(req.body);
+        if (!validationResult.success) {
+            throw new AppError_1.AppError(validationResult.error.issues[0].message, 400);
         }
+        const { name } = validationResult.data;
         const alreadyExists = await client_1.prisma.skill.findFirst({
             where: {
                 name
@@ -50,12 +52,17 @@ const getAllSkillsController = async (req, res, next) => {
 };
 exports.getAllSkillsController = getAllSkillsController;
 const updateSkillsController = async (req, res, next) => {
-    const { name } = req.body;
-    const id = Number(req.params.id);
     try {
-        if (!name || !id) {
-            throw new AppError_1.AppError("Skills id and name is required", 400);
+        const paramValidation = skills_validation_1.skillIdSchema.safeParse(req.params);
+        if (!paramValidation.success) {
+            throw new AppError_1.AppError(paramValidation.error.issues[0].message, 400);
         }
+        const bodyValidation = skills_validation_1.updateSkillSchema.safeParse(req.body);
+        if (!bodyValidation.success) {
+            throw new AppError_1.AppError(bodyValidation.error.issues[0].message, 400);
+        }
+        const { id } = paramValidation.data;
+        const { name } = bodyValidation.data;
         const skills = await (0, skills_service_1.updateSkillsService)(id, name);
         if (!skills) {
             throw new AppError_1.AppError("Skills not updated", 400);
@@ -72,11 +79,12 @@ const updateSkillsController = async (req, res, next) => {
 };
 exports.updateSkillsController = updateSkillsController;
 const deleteSkillsController = async (req, res, next) => {
-    const id = Number(req.params.id);
     try {
-        if (!id) {
-            throw new AppError_1.AppError("Skills id is required", 400);
+        const paramValidation = skills_validation_1.skillIdSchema.safeParse(req.params);
+        if (!paramValidation.success) {
+            throw new AppError_1.AppError(paramValidation.error.issues[0].message, 400);
         }
+        const { id } = paramValidation.data;
         const skills = await (0, skills_service_1.deleteSkillsService)(id);
         if (!skills) {
             throw new AppError_1.AppError("Skills not deleted", 400);
