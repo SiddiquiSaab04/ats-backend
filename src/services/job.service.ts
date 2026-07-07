@@ -21,7 +21,7 @@ const createJob = async (jobData : CreateJobInput, userId : number) => {
             jobType: jobData.jobType as any,
             createdBy: Number(userId),
             validTill: jobData.validTill,
-            status: jobData.status || "OPEN",
+            status: jobData.status || "OPEN"
         }
     });
     if (jobData.skills && jobData.skills.length > 0) {
@@ -57,9 +57,9 @@ const createJob = async (jobData : CreateJobInput, userId : number) => {
         } = createdJob;
         return {
             ...rest,
-            skills: jobSkills.map(
-                (js : any) => js.skill.name
-            )
+            skills: jobSkills
+                .filter((js : any) => js.skill)
+                .map((js : any) => js.skill.name)
         };
     }
     return createdJob;
@@ -121,22 +121,22 @@ const getAllJobs = async (page : number = 1, limit : number = 10, search = "") =
                 } = job;
                 return {
                     ...rest,
-                    skills: jobSkills.map(
-                        (js : any) => js.skill.name
-                    ),
-                    company: {
+                    skills: jobSkills
+                        .filter((js : any) => js.skill)
+                        .map((js : any) => js.skill.name),
+                    company: job.company ? {
                         id: job.companyId,
-                        name: job.company.name,
-                        description: job.company.description,
-                        location: job.company.location
-                    }
+                        name: job.company?.name || "Unknown Company",
+                        description: job.company?.description || "",
+                        location: job.company?.location || ""
+                    } : null
                 };
             }
         )
     };
 
     await redisClient.set(cacheKey, JSON.stringify(jobs), {
-        EX: 60 * 5
+        EX: 60 * 3
     });
 
     return jobs;
@@ -168,15 +168,15 @@ const getJobById = async (jobData : GetJobByIdInput) => {
     } = job;
     return {
         ...rest,
-        skills: jobSkills.map(
-            (js : any) => js.skill.name
-        ),
-        company: {
-            id: job.companyId,
+        skills: jobSkills
+            .filter((js : any) => js.skill)
+            .map((js : any) => js.skill.name),
+        company: job.company ? {
+            id: job.company.id,
             name: job.company.name,
             description: job.company.description,
             location: job.company.location
-        }
+        } : null
     }
 }
 
@@ -203,7 +203,7 @@ const updateJob = async (id : number, jobData : UpdateJobInput) => {
             salary: jobData.salary,
             companyId: jobData.companyId,
             jobType: jobData.jobType,
-            validTill: jobData.validTill,
+            validTill: jobData.validTill
         }
     });
     if (jobData.skills && jobData.skills.length > 0) { // Delete existing skills for this job
@@ -247,15 +247,15 @@ const updateJob = async (id : number, jobData : UpdateJobInput) => {
             } = updatedJob;
             return {
                 ...rest,
-                skills: jobSkills.map(
-                    (js : any) => js.skill.name
-                ),
-                company: {
+                skills: jobSkills
+                    .filter((js : any) => js.skill)
+                    .map((js : any) => js.skill.name),
+                company: updatedJob.company ? {
                     id: updatedJob.companyId,
                     name: updatedJob.company.name,
                     description: updatedJob.company.description,
                     location: updatedJob.company.location
-                }
+                } : null
             }
         }
     }
