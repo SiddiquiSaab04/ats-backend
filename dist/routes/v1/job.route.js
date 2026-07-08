@@ -9,6 +9,7 @@ const job_controller_1 = __importDefault(require("../../controllers/job.controll
 const router = (0, express_1.Router)();
 router.post("/", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "ADMIN"), job_controller_1.default.createJob);
 router.get("/", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "CANDIDATE", "ADMIN"), job_controller_1.default.getAllJobs);
+router.get("/myjobs", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER"), job_controller_1.default.getAllJobsById);
 router.get("/:id", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "CANDIDATE", "ADMIN"), job_controller_1.default.getJobById);
 router.put("/:id", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "ADMIN"), job_controller_1.default.updateJob);
 router.delete("/:id", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER", "ADMIN"), job_controller_1.default.deleteJob);

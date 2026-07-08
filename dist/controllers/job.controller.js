@@ -30,7 +30,28 @@ const getAllJobs = async (req, res, next) => {
         }
         const { page, limit, search } = (0, pagination_1.parsePaginationQuery)(req);
         const result = await job_service_1.default.getAllJobs(page, limit, search);
-        return res.status(200).json({ success: true, message: "Jobs fetched successfully", ...result });
+        return res.status(200).json({
+            success: true,
+            message: "Jobs fetched successfully",
+            ...result
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+const getAllJobsById = async (req, res, next) => {
+    try {
+        const userId = req.user?.id;
+        const role = req.user?.role;
+        if (!userId) {
+            throw new AppError_1.AppError("You are not authenticated", 401);
+        }
+        if (role !== "RECRUITER" && role !== "ADMIN") {
+            throw new AppError_1.AppError("You are not authorized to access this resource", 403);
+        }
+        const job = await job_service_1.default.getAllJobsById(userId);
+        return res.status(200).json({ success: true, message: "Jobs fetched successfully", job });
     }
     catch (error) {
         next(error);
@@ -43,7 +64,9 @@ const getJobById = async (req, res, next) => {
             throw new AppError_1.AppError("Invalid job data", 400);
         }
         const existingJob = await client_1.prisma.job.findUnique({
-            where: { id: Number(validationResult.data.id) }
+            where: {
+                id: Number(validationResult.data.id)
+            }
         });
         if (!existingJob) {
             throw new AppError_1.AppError("Job not found", 404);
@@ -62,9 +85,9 @@ const updateJob = async (req, res, next) => {
         if (!validationResult.success) {
             throw new AppError_1.AppError("Invalid job data", 400);
         }
-        const existingJob = await client_1.prisma.job.findUnique({
-            where: { id }
-        });
+        const existingJob = await client_1.prisma.job.findUnique({ where: {
+                id
+            } });
         if (!existingJob) {
             throw new AppError_1.AppError("Job not found", 404);
         }
@@ -82,7 +105,9 @@ const deleteJob = async (req, res, next) => {
             return res.status(400).json({ success: false, message: "Invalid job data", errors: validationResult.error.issues });
         }
         const existingJob = await client_1.prisma.job.findUnique({
-            where: { id: Number(validationResult.data.id) }
+            where: {
+                id: Number(validationResult.data.id)
+            }
         });
         if (!existingJob) {
             throw new AppError_1.AppError("Job not found", 404);
@@ -97,7 +122,8 @@ const deleteJob = async (req, res, next) => {
 exports.default = {
     createJob,
     getAllJobs,
+    getAllJobsById,
     getJobById,
     updateJob,
-    deleteJob,
+    deleteJob
 };

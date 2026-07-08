@@ -45,9 +45,7 @@ const createJob = async (jobData, userId) => {
         const { jobSkills, ...rest } = createdJob;
         return {
             ...rest,
-            skills: jobSkills
-                .filter((js) => js.skill)
-                .map((js) => js.skill.name)
+            skills: jobSkills.filter((js) => js.skill).map((js) => js.skill.name)
         };
     }
     return createdJob;
@@ -98,9 +96,7 @@ const getAllJobs = async (page = 1, limit = 10, search = "") => {
             const { jobSkills, ...rest } = job;
             return {
                 ...rest,
-                skills: jobSkills
-                    .filter((js) => js.skill)
-                    .map((js) => js.skill.name),
+                skills: jobSkills.filter((js) => js.skill).map((js) => js.skill.name),
                 company: job.company ? {
                     id: job.companyId,
                     name: job.company?.name || "Unknown Company",
@@ -114,6 +110,30 @@ const getAllJobs = async (page = 1, limit = 10, search = "") => {
         EX: 60 * 3
     });
     return jobs;
+};
+const getAllJobsById = async (userId) => {
+    const job = await client_1.prisma.job.findMany({
+        where: {
+            createdBy: userId
+        },
+        include: {
+            jobSkills: {
+                include: {
+                    skill: true
+                }
+            },
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true
+                }
+            },
+            company: true
+        }
+    });
+    return job;
 };
 const getJobById = async (jobData) => {
     const job = await client_1.prisma.job.findUnique({
@@ -135,9 +155,7 @@ const getJobById = async (jobData) => {
     const { jobSkills, ...rest } = job;
     return {
         ...rest,
-        skills: jobSkills
-            .filter((js) => js.skill)
-            .map((js) => js.skill.name),
+        skills: jobSkills.filter((js) => js.skill).map((js) => js.skill.name),
         company: job.company ? {
             id: job.company.id,
             name: job.company.name,
@@ -203,9 +221,7 @@ const updateJob = async (id, jobData) => {
             const { jobSkills, ...rest } = updatedJob;
             return {
                 ...rest,
-                skills: jobSkills
-                    .filter((js) => js.skill)
-                    .map((js) => js.skill.name),
+                skills: jobSkills.filter((js) => js.skill).map((js) => js.skill.name),
                 company: updatedJob.company ? {
                     id: updatedJob.companyId,
                     name: updatedJob.company.name,
@@ -229,6 +245,7 @@ const deleteJob = async (id) => {
 exports.default = {
     createJob,
     getAllJobs,
+    getAllJobsById,
     getJobById,
     updateJob,
     deleteJob

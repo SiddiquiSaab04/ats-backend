@@ -2,11 +2,12 @@ import {prisma} from "../prisma/client";
 import {paginate} from "../utils/pagination";
 import {redisClient} from "../redis/client";
 import {z} from "zod";
-import {createJobSchema, updateJobSchema, getJobByIdSchema} from "../validators/jobs/job.validation";
+import {createJobSchema, updateJobSchema, getJobByIdSchema, getAllJobsByIdSchema} from "../validators/jobs/job.validation";
 
 type CreateJobInput = z.infer<typeof createJobSchema>;
 type UpdateJobInput = z.infer<typeof updateJobSchema>;
 type GetJobByIdInput = z.infer<typeof getJobByIdSchema>;
+type GetAllJobsByIdInput = z.infer<typeof getAllJobsByIdSchema>;
 
 const createJob = async (jobData : CreateJobInput, userId : number) => {
     const job = await prisma.job.create({
@@ -57,9 +58,11 @@ const createJob = async (jobData : CreateJobInput, userId : number) => {
         } = createdJob;
         return {
             ...rest,
-            skills: jobSkills
-                .filter((js : any) => js.skill)
-                .map((js : any) => js.skill.name)
+            skills: jobSkills.filter(
+                (js : any) => js.skill
+            ).map(
+                (js : any) => js.skill.name
+            )
         };
     }
     return createdJob;
@@ -121,14 +124,16 @@ const getAllJobs = async (page : number = 1, limit : number = 10, search = "") =
                 } = job;
                 return {
                     ...rest,
-                    skills: jobSkills
-                        .filter((js : any) => js.skill)
-                        .map((js : any) => js.skill.name),
+                    skills: jobSkills.filter(
+                        (js : any) => js.skill
+                    ).map(
+                        (js : any) => js.skill.name
+                    ),
                     company: job.company ? {
                         id: job.companyId,
-                        name: job.company?.name || "Unknown Company",
-                        description: job.company?.description || "",
-                        location: job.company?.location || ""
+                        name: job.company ?. name || "Unknown Company",
+                        description: job.company ?. description || "",
+                        location: job.company ?. location || ""
                     } : null
                 };
             }
@@ -142,6 +147,31 @@ const getAllJobs = async (page : number = 1, limit : number = 10, search = "") =
     return jobs;
 }
 
+
+const getAllJobsById = async (userId : number) => {
+    const job = await prisma.job.findMany({
+        where: {
+            createdBy: userId
+        },
+        include: {
+            jobSkills: {
+                include: {
+                    skill: true
+                }
+            },
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true
+                }
+            },
+            company: true
+        }
+    });
+    return job;
+}
 
 const getJobById = async (jobData : GetJobByIdInput) => {
     const job = await prisma.job.findUnique({
@@ -168,9 +198,11 @@ const getJobById = async (jobData : GetJobByIdInput) => {
     } = job;
     return {
         ...rest,
-        skills: jobSkills
-            .filter((js : any) => js.skill)
-            .map((js : any) => js.skill.name),
+        skills: jobSkills.filter(
+            (js : any) => js.skill
+        ).map(
+            (js : any) => js.skill.name
+        ),
         company: job.company ? {
             id: job.company.id,
             name: job.company.name,
@@ -247,9 +279,11 @@ const updateJob = async (id : number, jobData : UpdateJobInput) => {
             } = updatedJob;
             return {
                 ...rest,
-                skills: jobSkills
-                    .filter((js : any) => js.skill)
-                    .map((js : any) => js.skill.name),
+                skills: jobSkills.filter(
+                    (js : any) => js.skill
+                ).map(
+                    (js : any) => js.skill.name
+                ),
                 company: updatedJob.company ? {
                     id: updatedJob.companyId,
                     name: updatedJob.company.name,
@@ -275,6 +309,7 @@ const deleteJob = async (id : number) => {
 export default {
     createJob,
     getAllJobs,
+    getAllJobsById,
     getJobById,
     updateJob,
     deleteJob
