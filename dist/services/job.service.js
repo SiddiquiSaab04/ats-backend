@@ -111,10 +111,34 @@ const getAllJobs = async (page = 1, limit = 10, search = "") => {
     });
     return jobs;
 };
-const getAllJobsById = async (userId) => {
-    const job = await client_1.prisma.job.findMany({
+const getAllJobsById = async (userId, page = 1, limit = 10, search = "") => {
+    const result = await (0, pagination_1.paginate)(client_1.prisma.job, {
+        page,
+        limit,
+        search
+    }, {
         where: {
-            createdBy: userId
+            createdBy: userId,
+            ...(search ? {
+                OR: [
+                    {
+                        title: {
+                            contains: search
+                        }
+                    }, {
+                        location: {
+                            contains: search
+                        }
+                    }, {
+                        salary: {
+                            contains: search
+                        }
+                    }
+                ]
+            } : {})
+        },
+        orderBy: {
+            createdAt: 'asc'
         },
         include: {
             jobSkills: {
@@ -133,7 +157,24 @@ const getAllJobsById = async (userId) => {
             company: true
         }
     });
-    return job;
+    return {
+        ...result,
+        data: result.data.map((job) => {
+            const { jobSkills, ...rest } = job;
+            return {
+                ...rest,
+                skills: jobSkills
+                    .filter((js) => js.skill)
+                    .map((js) => js.skill.name),
+                company: job.company ? {
+                    id: job.company.id,
+                    name: job.company.name,
+                    description: job.company.description,
+                    location: job.company.location
+                } : null
+            };
+        })
+    };
 };
 const getJobById = async (jobData) => {
     const job = await client_1.prisma.job.findUnique({

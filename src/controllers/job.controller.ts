@@ -51,11 +51,20 @@ const getAllJobsById = async (req : Request, res : Response, next : NextFunction
         if(!userId){
             throw new AppError("You are not authenticated",401);
         }
-        if(role !== "RECRUITER" && role !== "ADMIN"){
+        if(role !== "RECRUITER"){
             throw new AppError("You are not authorized to access this resource",403);
         }
-        const job = await jobService.getAllJobsById(userId);
-        return res.status(200).json({success: true, message: "Jobs fetched successfully", job});
+        const validationResult = getAllJobsSchema.safeParse(req.query);
+        if (!validationResult.success) {
+            throw new AppError("Invalid query parameters", 400);
+        }
+        const {page, limit, search} = parsePaginationQuery(req);
+        const result = await jobService.getAllJobsById(userId, page, limit, search);
+        return res.status(200).json({
+            success: true,
+            message: "Jobs fetched successfully",
+            ...result
+        });
     } catch (error) {
         next(error);
     }
