@@ -1,53 +1,23 @@
-import { Request , Response , NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import analyticsService from "../services/analytics.service";
 import { AppError } from "../utils/AppError";
 
-const getAnalyticsForCandidate = async(req:Request , res:Response , next:NextFunction) => {
+const getAnalytics = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {id , role} = (req as any).user;
-        if(role !== "CANDIDATE"){
+        const { id, role } = (req as any).user;
+        if (!id || !role) {
             throw new AppError("Unauthorized", 401);
         }
-        const analytics = await analyticsService.getAnalyticsForCandidate(id);
+        const analytics = await analyticsService.getAnalytics(id, role);
         return res.status(200).json({
             success: true,
             data: analytics
-        })
-    } catch (error : any) {
-        throw new AppError("Something went wrong" , 500)
-    }
-}
-
-const getAnalyticsForRecruiter = async(req:Request , res:Response , next:NextFunction) => {
-    try {
-        const {id , role} = (req as any).user;
-        if(role !== "RECRUITER"){
-            throw new AppError("Unauthorized", 401);
-        }
-        const analytics = await analyticsService.getAnalyticsForRecruiter(id);
-        res.status(200).json({
-            success: true,
-            data: analytics
-        })
-    } catch (error : any) {
-        throw new AppError(error.message , 500)
-    }
-}
-
-const getAnalyticsForAdmin = async(req:Request , res:Response , next:NextFunction) => {
-    try {
-        const analytics = await analyticsService.getAnalyticsForAdmin(req);
-        res.status(200).json({
-            success: true,
-            data: analytics
-        })
-    } catch (error : any) {
-        throw new AppError(error.message , 500)
+        });
+    } catch (error: any) {
+        next(error);
     }
 }
 
 export default {
-    getAnalyticsForCandidate,
-    getAnalyticsForRecruiter,
-    getAnalyticsForAdmin
-}
+    getAnalytics
+}
