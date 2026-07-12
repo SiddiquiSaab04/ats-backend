@@ -1,17 +1,32 @@
 import { prisma } from "../prisma/client";
+import { paginate } from "../utils/pagination";
 
-const getAllUsers = async () => {
-    const users =  await prisma.user.findMany();
-    return users.map((user) => {
-        return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            role: user.role,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt,
+const getAllUsers = async (page: number = 1, limit: number = 10, search = "") => {
+    const result = await paginate(prisma.user, {
+        page,
+        limit,
+        search
+    }, {
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+        },
+        where: search ? {
+            OR: [
+                { name: { contains: search } },
+                { email: { contains: search } }
+            ]
+        } : undefined,
+        orderBy: {
+            createdAt: "asc"
         }
-    })
+    });
+
+    return result;
 }
 
 const getCurrentUser = async (email:string) => {
