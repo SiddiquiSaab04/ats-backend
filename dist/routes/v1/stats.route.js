@@ -7,7 +7,5 @@ const express_1 = require("express");
 const auth_middleware_1 = __importDefault(require("../../middlewares/auth.middleware"));
 const stats_controller_1 = __importDefault(require("../../controllers/stats.controller"));
 const router = (0, express_1.Router)();
-router.get("/candidate", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("CANDIDATE"), stats_controller_1.default.getStatsForCandidate);
-router.get("/recruiter", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("RECRUITER"), stats_controller_1.default.getStatsForRecruiter);
-router.get("/admin", auth_middleware_1.default.auth, auth_middleware_1.default.authorizeRole("ADMIN"), stats_controller_1.default.getStatsForAdmin);
+router.get("/", auth_middleware_1.default.auth, stats_controller_1.default.getStats);
 exports.default = router;
